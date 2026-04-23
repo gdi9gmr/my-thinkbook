@@ -3329,23 +3329,136 @@
     if(currentTab === 'draw') renderDrawings();
   }
 
-  // ============ INIT ============
-  window.renderAllViews();
-  updateHeader();
-
-  setInterval(renderTasks, 60000);
-
-  document.getElementById('source-text').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); window.doTranslate(); }
-  });
-
   // ============ DRIVE CLOUD SYNC IMPLEMENTATION ============
+  const CLIENT_ID = '329621911459-dsqbrm418rfqeh8ir6k1vtdjet33moir.apps.googleusercontent.com';
+  const SCOPES = 'https://www.googleapis.com/auth/drive.appdata';
+  const FILE_NAME = 'thinkbook_cloud_data.json';
+
+  let tokenClient;
+  let accessToken = null;
+  let driveFileId = null;
+  let isSyncing = false;
+
+  window.initGSI = function() {
+    if (typeof google === 'undefined' || !google.accounts) {
+      setTimeout(window.initGSI, 500); // Retry if not yet loaded
+      return;
+    }
+
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID,
+      scope: SCOPES,
+      callback: (response) => {
+        if (response.error !== undefined) {
+          toast('Login failed or cancelled');
+          return;
+        }
+        accessToken = response.access_token;
+        localStorage.setItem('drive_token', accessToken);
+        onAuthSuccess();
+      },
+    });
+
+    const savedToken = localStorage.getItem('drive_token');
+    if (savedToken) {
+      accessToken = savedToken;
+      onAuthSuccess();
+    } else {
+      document.getElementById('sync-status').classList.add('active', 'pending');
+      document.getElementById('sync-status').textContent = '⚠️ Not logged in';
+    }
+  };
+
+  window.handleAuthClick = function() {
+    if (!tokenClient) return toast('Google Auth loading, please wait...');
+    tokenClient.requestAccessToken({prompt: 'consent'});
+  };
+
+  function onAuthSuccess() {
+    document.getElementById('auth-btn').style.display = 'none';
+    const badge = document.getElementById('sync-status');
+    badge.classList.add('active', 'pending');
+    badge.textContent = '☁️ Fetching...';
+    findOrCreateFile();
+  }
+
+  function handleAuthError() {
+    localStorage.removeItem('drive_token');
+    accessToken = null;
+    document.getElementById('auth-btn').style.display = 'block';
+    const badge = document.getElementById('sync-status');
+    badge.className = 'sync-badge active pending';
+    badge.textContent = '⚠️ Session Expired';
+    toast('Please log in again');
+  }
+
+  async function findOrCreateFile() {
+    try {
+      const response = await fetch(`https://www.googleapis.com/drive/v3/files?q=name='${FILE_NAME}'&spaces=appDataFolder`, {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      });
+      
+      if (response.status === 401) return handleAuthError();
+      
+      const data = await response.json();
+      
+      if (data.files && data.files.length > 0) {
+        driveFileId = data.files[0].id;
+        downloadData(false);
+      } else {
+        createFileOnDrive();
+      }
+    } catch (err) {
+      console.error(err);
+      toast('Cloud connection error');
+    }
+  }
+
+  async function downloadData(isBackgroundPoll = false) {
+    try {
+      const response = await fetch(`https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`, {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      });
+      
+      if (response.status === 401) return handleAuthError();
+      
+      const cloudData = await response.json();
+      
+      if (cloudData) {
+        const localLastUpdated = localStorage.getItem('thinkbook_last_updated');
+        const cloudLastUpdated = cloudData.lastUpdated;
+
+        // Overwrite local storage only if cloud data is newer
+        if (!localLastUpdated || !cloudLastUpdated || new Date(cloudLastUpdated) > new Date(localLastUpdated)) {
+          if(cloudData.sources) localStorage.setItem(STORE.sources, JSON.stringify(cloudData.sources));
+          if(cloudData.notes) localStorage.setItem(STORE.notes, JSON.stringify(cloudData.notes));
+          if(cloudData.categories) localStorage.setItem(STORE.categories, JSON.stringify(cloudData.categories));
+          if(cloudData.tasks) localStorage.setItem(STORE.tasks, JSON.stringify(cloudData.tasks));
+          if(cloudData.vocab) localStorage.setItem(STORE.vocab, JSON.stringify(cloudData.vocab));
+          if(cloudData.mindmap) localStorage.setItem(STORE.mindmap, JSON.stringify(cloudData.mindmap));
+          if(cloudData.drawings) localStorage.setItem(STORE.drawings, JSON.stringify(cloudData.drawings));
+          
+          if (cloudLastUpdated) localStorage.setItem('thinkbook_last_updated', cloudLastUpdated);
+          
+          window.renderAllViews();
+          if (!isBackgroundPoll) toast('Data synced from cloud');
+        }
+        updateSyncStatus(true);
+      }
+    } catch (error) {
+      console.error("Download Error: ", error);
+      if (!isBackgroundPoll) toast('Error fetching cloud data');
+    }
+  }
+
   window.syncToDrive = async function() {
     if (!accessToken || !driveFileId || isSyncing) return;
     
     isSyncing = true;
     updateSyncStatus(false);
 
+    const now = new Date().toISOString();
+    
     // Grab all local state to sync
     const localData = {
       sources: load(STORE.sources),
@@ -3355,11 +3468,11 @@
       vocab: load(STORE.vocab),
       mindmap: load(STORE.mindmap, {}),
       drawings: load(STORE.drawings),
-      lastUpdated: new Date().toISOString()
+      lastUpdated: now
     };
 
     try {
-      await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`, {
+      const response = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -3367,6 +3480,10 @@
         },
         body: JSON.stringify(localData)
       });
+      
+      if (response.status === 401) return handleAuthError();
+      
+      localStorage.setItem('thinkbook_last_updated', now);
       updateSyncStatus(true);
     } catch (err) {
       console.error(err);
@@ -3375,31 +3492,66 @@
     }
   }
 
-  async function downloadData() {
-    try {
-      const response = await fetch(`https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`, {
-        headers: { 'Authorization': `Bearer ${accessToken}` }
-      });
-      const cloudData = await response.json();
-      
-      if (cloudData) {
-        // Sync cloud data back to local storage
-        if(cloudData.sources) localStorage.setItem(STORE.sources, JSON.stringify(cloudData.sources));
-        if(cloudData.notes) localStorage.setItem(STORE.notes, JSON.stringify(cloudData.notes));
-        if(cloudData.categories) localStorage.setItem(STORE.categories, JSON.stringify(cloudData.categories));
-        if(cloudData.tasks) localStorage.setItem(STORE.tasks, JSON.stringify(cloudData.tasks));
-        if(cloudData.vocab) localStorage.setItem(STORE.vocab, JSON.stringify(cloudData.vocab));
-        if(cloudData.mindmap) localStorage.setItem(STORE.mindmap, JSON.stringify(cloudData.mindmap));
-        if(cloudData.drawings) localStorage.setItem(STORE.drawings, JSON.stringify(cloudData.drawings));
-        
-        window.renderAllViews();
-        updateSyncStatus(true);
-      }
-    } catch (error) {
-      console.error("Download Error: ", error);
-      toast('Error fetching cloud data');
+  async function createFileOnDrive() {
+    const metadata = {
+      name: FILE_NAME,
+      parents: ['appDataFolder']
+    };
+    const form = new FormData();
+    form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+    form.append('file', new Blob([JSON.stringify({notes:[]})], { type: 'application/json' }));
+
+    const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${accessToken}` },
+      body: form
+    });
+    
+    if (response.status === 401) return handleAuthError();
+    
+    const file = await response.json();
+    driveFileId = file.id;
+    updateSyncStatus(true);
+  }
+
+  function updateSyncStatus(isSynced) {
+    const badge = document.getElementById('sync-status');
+    badge.classList.add('active');
+    if (isSynced) {
+      badge.className = 'sync-badge active synced';
+      badge.textContent = '☁️ Synced';
+    } else {
+      badge.className = 'sync-badge active pending';
+      badge.textContent = '☁️ Saving...';
     }
   }
+
+  // ============ BACKGROUND SYNC TIMERS ============
+  // Poll for updates every 15 seconds if authenticated
+  setInterval(() => {
+    if (accessToken && driveFileId && !isSyncing) {
+      downloadData(true);
+    }
+  }, 15000);
+
+  // Also fetch immediately when user switches tabs back to the app
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && accessToken && driveFileId && !isSyncing) {
+      downloadData(true);
+    }
+  });
+
+  // ============ INIT ============
+  window.onload = () => {
+    window.initGSI();
+    window.renderAllViews();
+    updateHeader();
+  };
+
+  document.getElementById('source-text').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); window.doTranslate(); }
+  });
+
 </script>
 </body>
 </html>
