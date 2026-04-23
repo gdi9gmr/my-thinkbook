@@ -1,0 +1,3546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="theme-color" content="#1a1a1a" />
+<title>Thinkbook — Notes · Draw · Tasks · Words</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,400&family=JetBrains+Mono:wght@400;500&family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f1e8;
+    --bg-card: #ffffff;
+    --ink: #1a1a1a;
+    --ink-soft: #5a5751;
+    --ink-faint: #a8a49a;
+    --line: #e8e2d5;
+    --accent: #d94d2a;
+    --accent-soft: #fde8e0;
+    --gold: #c49a4a;
+    --green: #5a7a4a;
+    --green-soft: #e4ecd8;
+    --blue: #3a6a8a;
+    --purple: #7a4a8a;
+    --shadow: 0 1px 0 rgba(0,0,0,0.04), 0 4px 20px -8px rgba(0,0,0,0.08);
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter Tight', -apple-system, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    overscroll-behavior: none;
+    min-height: 100vh;
+  }
+
+  body {
+    background-image:
+      radial-gradient(circle at 20% 0%, rgba(217,77,42,0.05) 0%, transparent 40%),
+      radial-gradient(circle at 80% 100%, rgba(196,154,74,0.06) 0%, transparent 40%);
+    padding-bottom: 90px;
+  }
+
+  /* Cloud Loader Overlay */
+  #cloud-loader {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.3s ease;
+  }
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--line);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+  }
+  @keyframes spin { 100% { transform: rotate(360deg); } }
+
+  .cloud-indicator {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-faint);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .cloud-indicator.synced { color: var(--green); }
+
+  /* Header */
+  .app-header {
+    padding: 20px 20px 14px;
+    border-bottom: 1px solid var(--line);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    backdrop-filter: blur(12px);
+    background: rgba(245, 241, 232, 0.92);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .back-btn {
+    background: transparent;
+    border: none;
+    color: var(--ink);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px 8px;
+    margin-right: 4px;
+    flex-shrink: 0;
+  }
+
+  .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+
+  .brand h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 800;
+    font-size: 26px;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  .brand .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  .header-crumb {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .header-crumb .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-soft);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .header-crumb .title {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 16px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .header-action {
+    background: var(--ink);
+    color: var(--bg);
+    border: none;
+    padding: 8px 14px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    flex-shrink: 0;
+  }
+
+  /* Tab content */
+  main {
+    padding: 20px;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  .tab-panel, .view { display: none; animation: fadeIn 0.3s ease; }
+  .tab-panel.active, .view.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 22px;
+    letter-spacing: -0.01em;
+    margin-bottom: 4px;
+  }
+
+  .section-subtitle {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-bottom: 16px;
+    font-style: italic;
+  }
+
+  /* --- RICH TEXT EDITOR STYLES --- */
+  .rte-wrapper {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  .rte-toolbar {
+    display: flex;
+    gap: 4px;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    border-bottom: 1px dashed var(--line);
+    flex-wrap: wrap;
+  }
+
+  .rte-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    color: var(--ink-soft);
+    cursor: pointer;
+    padding: 4px 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    transition: all 0.2s;
+  }
+
+  .rte-btn:hover {
+    background: var(--bg);
+    color: var(--ink);
+  }
+
+  .rte-btn.active {
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  .rich-editor {
+    width: 100%;
+    min-height: 60px;
+    outline: none;
+    font-family: 'Inter Tight', sans-serif;
+    font-size: 15px;
+    color: var(--ink);
+    line-height: 1.5;
+    word-break: break-word;
+  }
+
+  .rich-editor:empty:before {
+    content: attr(data-placeholder);
+    color: var(--ink-faint);
+    font-style: italic;
+    pointer-events: none;
+    display: block;
+  }
+
+  /* Formatted content inside notes */
+  .note-body h3, .item-text h3, .rich-editor h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 1.2em;
+    font-weight: 700;
+    margin: 8px 0 4px;
+    line-height: 1.2;
+  }
+
+  .note-body blockquote, .item-text blockquote, .rich-editor blockquote {
+    border-left: 3px solid var(--accent);
+    padding-left: 12px;
+    margin: 6px 0;
+    color: var(--ink-soft);
+    font-style: italic;
+    background: var(--accent-soft);
+    border-radius: 0 4px 4px 0;
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
+
+  .note-body code, .item-text code, .rich-editor code {
+    background: var(--bg);
+    color: var(--accent);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85em;
+    border: 1px solid var(--line);
+  }
+
+  /* Emoji Picker */
+  .emoji-popover {
+    position: absolute;
+    top: 40px;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow);
+    padding: 8px;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 4px;
+    z-index: 200;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-5px);
+    transition: all 0.2s ease;
+  }
+
+  .emoji-popover.active {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  .emoji-cell {
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    transition: background 0.2s;
+  }
+
+  .emoji-cell:hover {
+    background: var(--bg);
+  }
+
+  .color-popover {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    padding: 12px;
+  }
+  
+  .color-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  
+  .color-btn:hover {
+    transform: scale(1.1);
+  }
+
+  .size-popover {
+    grid-template-columns: 1fr;
+    min-width: 100px;
+  }
+
+  .size-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 8px 12px;
+    text-align: left;
+    width: 100%;
+    border-radius: 4px;
+    font-family: 'Inter Tight', sans-serif;
+    color: var(--ink);
+  }
+  
+  .size-btn:hover {
+    background: var(--bg);
+  }
+
+  /* Quick capture */
+  .quick-capture {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 14px;
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+  }
+
+  .qc-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--line);
+  }
+
+  .qc-hint {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-faint);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* Section divider */
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding-top: 8px;
+  }
+
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  .section-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-faint);
+  }
+
+  /* Inbox (unsorted notes) */
+  .inbox {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .inbox-note {
+    background: #fffbf2;
+    border: 1px solid var(--gold);
+    border-left-width: 3px;
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    position: relative;
+    cursor: grab;
+    transition: transform 0.15s, box-shadow 0.15s;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .inbox-note:active { cursor: grabbing; }
+  .inbox-note.dragging {
+    opacity: 0.4;
+    transform: scale(0.95);
+  }
+
+  .inbox-note .drag-handle {
+    position: absolute;
+    left: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gold);
+    font-size: 14px;
+    opacity: 0.6;
+  }
+
+  .inbox-note .note-body {
+    padding-left: 16px;
+    font-size: 14px;
+    line-height: 1.45;
+    word-break: break-word;
+  }
+
+  .inbox-note .note-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-faint);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding-left: 16px;
+    margin-top: 4px;
+  }
+
+  .inbox-note .delete {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: transparent;
+    border: none;
+    color: var(--ink-faint);
+    cursor: pointer;
+    padding: 4px 6px;
+    font-size: 13px;
+    line-height: 1;
+  }
+  .inbox-note .delete:hover { color: var(--accent); }
+
+  /* Floating drag ghost */
+  .drag-ghost {
+    position: fixed;
+    background: var(--ink);
+    color: var(--bg);
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    max-width: 240px;
+    pointer-events: none;
+    z-index: 300;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+    transform: rotate(-2deg);
+    display: none;
+  }
+
+  .drag-ghost.active { display: block; }
+
+  /* Category chips */
+  .category-bar {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 4px 0 14px;
+    margin-bottom: 8px;
+    scrollbar-width: none;
+  }
+
+  .category-bar::-webkit-scrollbar { display: none; }
+
+  .cat-chip {
+    padding: 7px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 100px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.04em;
+    transition: all 0.2s;
+    white-space: nowrap;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+  }
+
+  .cat-chip.active {
+    background: var(--ink);
+    color: var(--bg);
+    border-color: var(--ink);
+  }
+
+  .cat-chip.add-cat {
+    color: var(--accent);
+    border-color: var(--accent-soft);
+    border-style: dashed;
+  }
+
+  /* Book cards grid */
+  .book-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  @media (min-width: 500px) {
+    .book-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .book-card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 16px;
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s, background 0.2s;
+    position: relative;
+    min-height: 140px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .book-card:active { transform: scale(0.97); }
+  .book-card:hover { box-shadow: 0 4px 24px -8px rgba(0,0,0,0.15); }
+
+  .book-card.drop-target {
+    border-color: var(--accent);
+    border-style: dashed;
+    border-width: 2px;
+    background: var(--accent-soft);
+    transform: scale(1.03);
+  }
+
+  .book-card .cat-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+
+  .book-card h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    margin-bottom: 6px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .book-card .author {
+    font-size: 12px;
+    color: var(--ink-soft);
+    font-style: italic;
+    margin-bottom: 10px;
+  }
+
+  .book-card .note-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-faint);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-top: auto;
+    padding-top: 8px;
+    border-top: 1px dashed var(--line);
+  }
+
+  .book-card.add-book {
+    border-style: dashed;
+    border-color: var(--accent);
+    background: transparent;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+  }
+
+  .book-card.add-book .plus {
+    font-size: 32px;
+    line-height: 1;
+    margin-bottom: 6px;
+    font-weight: 300;
+  }
+
+  .book-card.add-book .add-label {
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* Modals */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(26,26,26,0.5);
+    z-index: 150;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    animation: fadeBg 0.2s ease;
+  }
+
+  .modal-backdrop.active { display: flex; }
+
+  @keyframes fadeBg { from { opacity: 0; } to { opacity: 1; } }
+
+  .modal {
+    background: var(--bg-card);
+    border-radius: 20px 20px 0 0;
+    width: 100%;
+    max-width: 520px;
+    padding: 24px 20px 28px;
+    max-height: 85vh;
+    overflow-y: auto;
+    animation: slideUp 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
+  }
+
+  @keyframes slideUp { from { transform: translateY(30px); opacity: 0.5; } to { transform: translateY(0); opacity: 1; } }
+
+  .modal-handle {
+    width: 40px;
+    height: 4px;
+    background: var(--line);
+    border-radius: 2px;
+    margin: 0 auto 16px;
+  }
+
+  .modal h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+
+  .form-group { margin-bottom: 14px; }
+
+  .form-label {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+  }
+
+  .form-input, .form-select {
+    width: 100%;
+    padding: 10px 12px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 15px;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .form-input:focus, .form-select:focus { border-color: var(--accent); }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .modal-actions .btn { flex: 1; }
+
+  /* Input area */
+  .input-card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 16px;
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+  }
+
+  textarea, input[type="text"], input[type="datetime-local"], select {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 15px;
+    color: var(--ink);
+    outline: none;
+    resize: none;
+  }
+
+  textarea::placeholder, input::placeholder {
+    color: var(--ink-faint);
+    font-style: italic;
+  }
+
+  textarea { min-height: 70px; }
+
+  .input-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--line);
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .input-row input, .input-row select {
+    font-size: 13px;
+    padding: 6px 10px;
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line);
+    flex: 1;
+    min-width: 0;
+  }
+
+  .btn {
+    background: var(--ink);
+    color: var(--bg);
+    border: none;
+    padding: 10px 18px;
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: transform 0.15s, background 0.2s;
+    white-space: nowrap;
+  }
+
+  .btn:active { transform: scale(0.96); }
+  .btn-accent { background: var(--accent); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--ink-soft);
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  .btn-outline {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--line);
+  }
+  .btn-small {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  /* Source detail */
+  .source-hero {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 20px;
+    border: 1px solid var(--line);
+    margin-bottom: 20px;
+  }
+
+  .source-hero .cat-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+
+  .source-hero h2 {
+    font-family: 'Fraunces', serif;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: 6px;
+  }
+
+  .source-hero .author {
+    font-size: 14px;
+    color: var(--ink-soft);
+    font-style: italic;
+    margin-bottom: 14px;
+  }
+
+  .source-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  /* Notes list */
+  .item-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .item {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    position: relative;
+    animation: slideIn 0.3s ease;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-8px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .item-text {
+    font-size: 15px;
+    line-height: 1.5;
+    margin-bottom: 6px;
+    word-break: break-word;
+  }
+
+  .item-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-faint);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .item-actions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 4px;
+  }
+
+  .icon-btn {
+    background: transparent;
+    border: none;
+    padding: 6px;
+    cursor: pointer;
+    color: var(--ink-faint);
+    border-radius: 6px;
+    transition: color 0.2s, background 0.2s;
+    font-size: 14px;
+    line-height: 1;
+  }
+
+  .icon-btn:hover { color: var(--accent); background: var(--accent-soft); }
+
+  .empty {
+    text-align: center;
+    padding: 32px 20px;
+    color: var(--ink-faint);
+    font-style: italic;
+    font-family: 'Fraunces', serif;
+    font-size: 15px;
+  }
+
+  /* Mind map */
+  .mindmap-container {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    overflow: hidden;
+    position: relative;
+    height: 70vh;
+    min-height: 500px;
+    touch-action: none;
+  }
+
+  .mindmap-toolbar {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    display: flex;
+    gap: 6px;
+    z-index: 10;
+    flex-wrap: wrap;
+  }
+
+  .mm-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    padding: 6px 12px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+    color: var(--ink-soft);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    font-weight: 600;
+  }
+
+  .mm-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+  #mindmap-svg {
+    width: 100%;
+    height: 100%;
+    cursor: grab;
+    user-select: none;
+    background-image: radial-gradient(circle, var(--line) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  #mindmap-svg.grabbing { cursor: grabbing; }
+  #mindmap-svg.connecting { cursor: crosshair; }
+
+  .mm-node { cursor: grab; }
+
+  .mm-node.center-node .node-bg { fill: var(--ink); }
+  .mm-node.center-node .node-text { fill: var(--bg); }
+
+  .mm-node .node-bg {
+    fill: var(--bg-card);
+    stroke: var(--line);
+    stroke-width: 1.5;
+    transition: stroke 0.15s, stroke-width 0.15s;
+  }
+
+  .mm-node:hover .node-bg { stroke: var(--accent); stroke-width: 2; }
+  .mm-node.selected .node-bg { stroke: var(--accent); stroke-width: 2.5; }
+
+  .mm-node .node-text {
+    fill: var(--ink);
+    font-family: 'Inter Tight', sans-serif;
+    font-size: 12px;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .mm-link {
+    stroke: var(--ink-faint);
+    stroke-width: 1.5;
+    fill: none;
+    pointer-events: none;
+  }
+
+  .mm-link.custom {
+    stroke: var(--accent);
+    stroke-width: 2;
+    stroke-dasharray: 4 3;
+  }
+
+  .mm-hint {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    right: 10px;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-faint);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: rgba(255,255,255,0.8);
+    padding: 6px;
+    border-radius: 6px;
+    pointer-events: none;
+  }
+
+  /* DRAW TAB */
+  .draw-view {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .draw-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  @media (min-width: 500px) {
+    .draw-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .draw-card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 10px;
+    border: 1px solid var(--line);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    min-height: 160px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  .draw-card:active { transform: scale(0.97); }
+  .draw-card:hover { box-shadow: 0 4px 24px -8px rgba(0,0,0,0.12); }
+
+  .draw-thumb {
+    flex: 1;
+    background: #fafaf5;
+    border-radius: var(--radius-sm);
+    margin-bottom: 8px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--line);
+  }
+
+  .draw-thumb svg, .draw-thumb img {
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  .draw-card .title {
+    font-family: 'Fraunces', serif;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .draw-card .subtitle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--ink-faint);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .draw-card .tag {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-top: 4px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .draw-card .delete-small {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: rgba(255,255,255,0.9);
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+  .draw-card .delete-small:hover { color: var(--accent); background: white; }
+
+  .draw-card.add-draw {
+    border-style: dashed;
+    border-color: var(--accent);
+    background: transparent;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+  }
+
+  .draw-card.add-draw .plus {
+    font-size: 28px;
+    margin-bottom: 4px;
+    font-weight: 300;
+  }
+
+  .draw-card.add-draw .add-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  /* Canvas editor */
+  .canvas-wrapper {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    overflow: hidden;
+    position: relative;
+  }
+
+  #draw-canvas {
+    display: block;
+    width: 100%;
+    height: 70vh;
+    min-height: 500px;
+    touch-action: none;
+    background: #fdfcf7;
+    background-image: radial-gradient(circle, rgba(0,0,0,0.04) 1px, transparent 1px);
+    background-size: 20px 20px;
+    cursor: crosshair;
+  }
+
+  .tool-bar {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    padding: 10px;
+    margin-bottom: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .tool-group {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    padding: 0 4px;
+    border-right: 1px solid var(--line);
+  }
+
+  .tool-group:last-child { border-right: none; }
+
+  .tool-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: var(--ink-soft);
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+
+  .tool-btn:hover { background: var(--bg); color: var(--ink); }
+  .tool-btn.active {
+    background: var(--ink);
+    color: white;
+    border-color: var(--ink);
+  }
+
+  .color-swatch {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: transform 0.15s;
+  }
+
+  .color-swatch:hover { transform: scale(1.1); }
+  .color-swatch.active {
+    border-color: var(--ink);
+    box-shadow: 0 0 0 2px white inset;
+  }
+
+  .size-slider {
+    width: 80px;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--line);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .size-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--ink);
+    cursor: pointer;
+  }
+
+  .size-slider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--ink);
+    cursor: pointer;
+    border: none;
+  }
+
+  .tool-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-right: 4px;
+  }
+
+  .canvas-toolbar-top {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 6px;
+    z-index: 10;
+  }
+
+  .canvas-toolbar-top .mm-btn { font-size: 10px; }
+
+  .draw-meta-bar {
+    padding: 12px 14px;
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .draw-meta-bar input {
+    flex: 1;
+    min-width: 150px;
+    padding: 6px 10px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--ink);
+    outline: none;
+  }
+
+  .draw-meta-bar select {
+    padding: 6px 10px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  /* Text input overlay on canvas */
+  .text-input-overlay {
+    position: absolute;
+    background: white;
+    border: 2px solid var(--accent);
+    padding: 4px 8px;
+    font-family: inherit;
+    font-size: 16px;
+    z-index: 20;
+    outline: none;
+    border-radius: 4px;
+    min-width: 100px;
+  }
+
+  /* Tasks, Translator, Vocab */
+  .task-item.done .item-text {
+    text-decoration: line-through;
+    color: var(--ink-faint);
+  }
+  .task-item.overdue { border-left: 3px solid var(--accent); }
+  .task-item.upcoming { border-left: 3px solid var(--gold); }
+  .task-item.done { opacity: 0.6; background: var(--green-soft); }
+
+  .checkbox {
+    width: 20px;
+    height: 20px;
+    border: 1.5px solid var(--ink-soft);
+    border-radius: 4px;
+    background: transparent;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-right: 10px;
+    vertical-align: middle;
+    transition: all 0.2s;
+  }
+
+  .checkbox.checked {
+    background: var(--green);
+    border-color: var(--green);
+    color: white;
+  }
+
+  .task-time { color: var(--accent); }
+
+  .translator-box {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+
+  .lang-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .lang-select { display: flex; align-items: center; gap: 6px; }
+
+  .lang-select select {
+    background: transparent;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--ink);
+  }
+
+  .swap-btn {
+    color: var(--accent);
+    font-size: 16px;
+    padding: 4px;
+    transform: rotate(90deg);
+  }
+  @media (min-width: 400px) {
+    .swap-btn { transform: rotate(0deg); }
+  }
+
+  .trans-input, .trans-output { padding: 14px 16px; min-height: 70px; }
+  .trans-input textarea { min-height: 50px; }
+
+  .trans-output {
+    background: #fafaf5;
+    border-top: 1px dashed var(--line);
+    font-size: 17px;
+    font-family: 'Fraunces', serif;
+    color: var(--ink);
+    min-height: 70px;
+    display: flex;
+    align-items: center;
+  }
+
+  .trans-output.loading { color: var(--ink-faint); font-style: italic; }
+  .trans-output.empty-state { color: var(--ink-faint); font-style: italic; }
+
+  .trans-actions {
+    display: flex;
+    gap: 8px;
+    padding: 12px 16px;
+    border-top: 1px solid var(--line);
+  }
+
+  .trans-actions .btn { flex: 1; }
+
+  .vocab-filter {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+
+  .filter-chip {
+    padding: 6px 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 100px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.04em;
+    transition: all 0.2s;
+  }
+
+  .filter-chip.active {
+    background: var(--ink);
+    color: var(--bg);
+    border-color: var(--ink);
+  }
+
+  .vocab-table {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    overflow: hidden;
+  }
+
+  .vocab-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 30px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line);
+    align-items: center;
+    gap: 10px;
+  }
+
+  .vocab-row:last-child { border-bottom: none; }
+  .vocab-row.header {
+    background: var(--bg);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    padding: 10px 14px;
+  }
+
+  .vocab-source { font-weight: 500; }
+  .vocab-target {
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    color: var(--ink);
+  }
+
+  .vocab-lang-tag {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-left: 6px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .export-bar {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+
+  /* Bottom nav */
+  .tab-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--bg-card);
+    border-top: 1px solid var(--line);
+    display: flex;
+    padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+    z-index: 100;
+    box-shadow: 0 -4px 20px -10px rgba(0,0,0,0.08);
+  }
+
+  .tab-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 10px 4px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    color: var(--ink-faint);
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: 500;
+    transition: color 0.2s;
+    letter-spacing: 0.02em;
+  }
+
+  .tab-btn.active { color: var(--accent); }
+  .tab-btn .tab-icon { font-size: 18px; line-height: 1; }
+
+  .toast {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--ink);
+    color: var(--bg);
+    padding: 10px 18px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 500;
+    z-index: 200;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s, transform 0.3s;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-4px);
+  }
+
+  .hint {
+    font-size: 11px;
+    color: var(--ink-faint);
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.04em;
+    margin-top: 8px;
+  }
+
+  .danger { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<div id="cloud-loader">
+  <div class="spinner"></div>
+  <div class="cloud-indicator">☁️ Syncing Cloud Data...</div>
+</div>
+
+<header class="app-header">
+  <div class="header-left" id="header-content">
+    <div class="brand"><h1>Thinkbook</h1> <span class="dot"></span></div>
+  </div>
+  <div style="display:flex; align-items:center; gap:10px;">
+    <span class="cloud-indicator synced" id="cloud-status" style="display:none;">☁️ Synced</span>
+    <button class="header-action" id="header-action" onclick="headerAction()" style="display:none;">+ Book</button>
+  </div>
+</header>
+
+<main>
+  <!-- ===== NOTES TAB ===== -->
+  <section class="tab-panel active" id="notes-panel">
+
+    <!-- View: Library (quick capture + inbox + books) -->
+    <div class="view active" id="sources-view">
+
+      <!-- Quick capture (Rich Text Editor) -->
+      <div class="quick-capture">
+        <div class="rte-wrapper">
+          <div class="rte-toolbar">
+            <button class="rte-btn" onclick="formatText('bold')" title="Bold"><b>B</b></button>
+            <button class="rte-btn" onclick="formatText('italic')" title="Italic"><i>I</i></button>
+            <button class="rte-btn" onclick="formatText('underline')" title="Underline"><u>U</u></button>
+            <button class="rte-btn" onclick="formatText('formatBlock', 'H3')" title="Header (Thickness)">H</button>
+            <button class="rte-btn" onclick="formatText('formatBlock', 'BLOCKQUOTE')" title="Quote">”</button>
+            
+            <!-- Color Picker -->
+            <button class="rte-btn" onclick="toggleCustomPopover('qc-color', event)" title="Text Color">🎨</button>
+            <div id="qc-color" class="emoji-popover color-popover">
+              <button class="color-btn" style="background:var(--ink)" onclick="formatText('foreColor', '#1a1a1a')"></button>
+              <button class="color-btn" style="background:var(--accent)" onclick="formatText('foreColor', '#d94d2a')"></button>
+              <button class="color-btn" style="background:var(--gold)" onclick="formatText('foreColor', '#c49a4a')"></button>
+              <button class="color-btn" style="background:var(--green)" onclick="formatText('foreColor', '#5a7a4a')"></button>
+              <button class="color-btn" style="background:var(--blue)" onclick="formatText('foreColor', '#3a6a8a')"></button>
+            </div>
+
+            <!-- Size Picker -->
+            <button class="rte-btn" onclick="toggleCustomPopover('qc-size', event)" title="Text Size">T↕</button>
+            <div id="qc-size" class="emoji-popover size-popover">
+              <button class="size-btn" style="font-size:12px" onclick="formatText('fontSize', '2')">Small</button>
+              <button class="size-btn" style="font-size:16px" onclick="formatText('fontSize', '3')">Medium</button>
+              <button class="size-btn" style="font-size:20px" onclick="formatText('fontSize', '5')">Large</button>
+            </div>
+
+            <!-- Symbols -->
+            <button class="rte-btn" onclick="toggleCustomPopover('qc-symbol', event)" title="Symbols">Ω</button>
+            <div id="qc-symbol" class="emoji-popover">
+              <button class="emoji-cell" onclick="insertEmoji('→')">→</button>
+              <button class="emoji-cell" onclick="insertEmoji('←')">←</button>
+              <button class="emoji-cell" onclick="insertEmoji('↑')">↑</button>
+              <button class="emoji-cell" onclick="insertEmoji('↓')">↓</button>
+              <button class="emoji-cell" onclick="insertEmoji('•')">•</button>
+              <button class="emoji-cell" onclick="insertEmoji('★')">★</button>
+              <button class="emoji-cell" onclick="insertEmoji('✓')">✓</button>
+              <button class="emoji-cell" onclick="insertEmoji('✕')">✕</button>
+              <button class="emoji-cell" onclick="insertEmoji('💡')">💡</button>
+              <button class="emoji-cell" onclick="insertEmoji('📌')">📌</button>
+              <button class="emoji-cell" onclick="insertEmoji('!')">!</button>
+              <button class="emoji-cell" onclick="insertEmoji('?')">?</button>
+            </div>
+
+            <button class="rte-btn" onclick="toggleCustomPopover('qc-emoji', event)" title="Emoji">😀</button>
+            <div id="qc-emoji" class="emoji-popover">
+              <button class="emoji-cell" onclick="insertEmoji('😀')">😀</button>
+              <button class="emoji-cell" onclick="insertEmoji('😂')">😂</button>
+              <button class="emoji-cell" onclick="insertEmoji('🥰')">🥰</button>
+              <button class="emoji-cell" onclick="insertEmoji('😎')">😎</button>
+              <button class="emoji-cell" onclick="insertEmoji('🤔')">🤔</button>
+              <button class="emoji-cell" onclick="insertEmoji('💡')">💡</button>
+              <button class="emoji-cell" onclick="insertEmoji('🚀')">🚀</button>
+              <button class="emoji-cell" onclick="insertEmoji('✨')">✨</button>
+              <button class="emoji-cell" onclick="insertEmoji('🔥')">🔥</button>
+              <button class="emoji-cell" onclick="insertEmoji('📌')">📌</button>
+              <button class="emoji-cell" onclick="insertEmoji('👍')">👍</button>
+              <button class="emoji-cell" onclick="insertEmoji('🎉')">🎉</button>
+            </div>
+          </div>
+          <div id="quick-note" class="rich-editor" contenteditable="true" data-placeholder="Quick idea from what you read…"></div>
+        </div>
+        <div class="qc-actions">
+          <span class="qc-hint">Capture now, organize later</span>
+          <button class="btn btn-accent btn-small" onclick="captureQuickNote()">Save</button>
+        </div>
+      </div>
+
+      <!-- Inbox -->
+      <div id="inbox-section" style="display: none;">
+        <div class="section-header">
+          <span class="section-label">◷ Inbox — drag onto a book</span>
+          <span class="section-count" id="inbox-count">0</span>
+        </div>
+        <div class="inbox" id="inbox-list"></div>
+      </div>
+
+      <!-- Categories + books -->
+      <div class="section-header">
+        <span class="section-label">◉ Library</span>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-small btn-ghost" onclick="exportNotesCsv(null)">↓ Export Notes</button>
+          <button class="btn btn-small btn-outline" onclick="openBookModal(false)">+ Book</button>
+        </div>
+      </div>
+      <div class="category-bar" id="category-bar"></div>
+      <div class="book-grid" id="book-grid"></div>
+    </div>
+
+    <!-- View: Source detail -->
+    <div class="view" id="source-view">
+      <div class="source-hero">
+        <div class="cat-label" id="source-cat">—</div>
+        <h2 id="source-title">—</h2>
+        <div class="author" id="source-author">—</div>
+        <div class="source-actions">
+          <button class="btn btn-accent btn-small" onclick="showView('mindmap-view'); renderMindmap();">◉ Mind Map</button>
+          <button class="btn btn-outline btn-small" onclick="newDrawingForSource()">✎ Draw</button>
+          <button class="btn btn-outline btn-small" onclick="openBookModal(true)">Edit</button>
+          <button class="btn btn-ghost btn-small" onclick="exportNotesCsv(currentSourceId)">↓ Export CSV</button>
+          <button class="btn btn-ghost btn-small danger" onclick="deleteCurrentSource()">Delete</button>
+        </div>
+      </div>
+
+      <!-- Detail Note Input (Rich Text Editor) -->
+      <div class="input-card">
+        <div class="rte-wrapper">
+          <div class="rte-toolbar">
+            <button class="rte-btn" onclick="formatText('bold')" title="Bold"><b>B</b></button>
+            <button class="rte-btn" onclick="formatText('italic')" title="Italic"><i>I</i></button>
+            <button class="rte-btn" onclick="formatText('underline')" title="Underline"><u>U</u></button>
+            <button class="rte-btn" onclick="formatText('formatBlock', 'H3')" title="Header (Thickness)">H</button>
+            <button class="rte-btn" onclick="formatText('formatBlock', 'BLOCKQUOTE')" title="Quote">”</button>
+            
+            <!-- Color Picker -->
+            <button class="rte-btn" onclick="toggleCustomPopover('nd-color', event)" title="Text Color">🎨</button>
+            <div id="nd-color" class="emoji-popover color-popover">
+              <button class="color-btn" style="background:var(--ink)" onclick="formatText('foreColor', '#1a1a1a')"></button>
+              <button class="color-btn" style="background:var(--accent)" onclick="formatText('foreColor', '#d94d2a')"></button>
+              <button class="color-btn" style="background:var(--gold)" onclick="formatText('foreColor', '#c49a4a')"></button>
+              <button class="color-btn" style="background:var(--green)" onclick="formatText('foreColor', '#5a7a4a')"></button>
+              <button class="color-btn" style="background:var(--blue)" onclick="formatText('foreColor', '#3a6a8a')"></button>
+            </div>
+
+            <!-- Size Picker -->
+            <button class="rte-btn" onclick="toggleCustomPopover('nd-size', event)" title="Text Size">T↕</button>
+            <div id="nd-size" class="emoji-popover size-popover">
+              <button class="size-btn" style="font-size:12px" onclick="formatText('fontSize', '2')">Small</button>
+              <button class="size-btn" style="font-size:16px" onclick="formatText('fontSize', '3')">Medium</button>
+              <button class="size-btn" style="font-size:20px" onclick="formatText('fontSize', '5')">Large</button>
+            </div>
+
+            <!-- Symbols -->
+            <button class="rte-btn" onclick="toggleCustomPopover('nd-symbol', event)" title="Symbols">Ω</button>
+            <div id="nd-symbol" class="emoji-popover">
+              <button class="emoji-cell" onclick="insertEmoji('→')">→</button>
+              <button class="emoji-cell" onclick="insertEmoji('←')">←</button>
+              <button class="emoji-cell" onclick="insertEmoji('↑')">↑</button>
+              <button class="emoji-cell" onclick="insertEmoji('↓')">↓</button>
+              <button class="emoji-cell" onclick="insertEmoji('•')">•</button>
+              <button class="emoji-cell" onclick="insertEmoji('★')">★</button>
+              <button class="emoji-cell" onclick="insertEmoji('✓')">✓</button>
+              <button class="emoji-cell" onclick="insertEmoji('✕')">✕</button>
+              <button class="emoji-cell" onclick="insertEmoji('💡')">💡</button>
+              <button class="emoji-cell" onclick="insertEmoji('📌')">📌</button>
+              <button class="emoji-cell" onclick="insertEmoji('!')">!</button>
+              <button class="emoji-cell" onclick="insertEmoji('?')">?</button>
+            </div>
+
+            <button class="rte-btn" onclick="toggleCustomPopover('nd-emoji', event)" title="Emoji">😀</button>
+            <div id="nd-emoji" class="emoji-popover">
+              <button class="emoji-cell" onclick="insertEmoji('😀')">😀</button>
+              <button class="emoji-cell" onclick="insertEmoji('😂')">😂</button>
+              <button class="emoji-cell" onclick="insertEmoji('🥰')">🥰</button>
+              <button class="emoji-cell" onclick="insertEmoji('😎')">😎</button>
+              <button class="emoji-cell" onclick="insertEmoji('🤔')">🤔</button>
+              <button class="emoji-cell" onclick="insertEmoji('💡')">💡</button>
+              <button class="emoji-cell" onclick="insertEmoji('🚀')">🚀</button>
+              <button class="emoji-cell" onclick="insertEmoji('✨')">✨</button>
+              <button class="emoji-cell" onclick="insertEmoji('🔥')">🔥</button>
+              <button class="emoji-cell" onclick="insertEmoji('📌')">📌</button>
+              <button class="emoji-cell" onclick="insertEmoji('👍')">👍</button>
+              <button class="emoji-cell" onclick="insertEmoji('🎉')">🎉</button>
+            </div>
+          </div>
+          <div id="note-input" class="rich-editor" contenteditable="true" data-placeholder="An idea from this source…"></div>
+        </div>
+        <div class="input-row">
+          <button class="btn btn-accent" onclick="addNote()" style="margin-left: auto;">Add Note</button>
+        </div>
+      </div>
+
+      <div class="item-list" id="notes-list"></div>
+    </div>
+
+    <!-- View: Mind map -->
+    <div class="view" id="mindmap-view">
+      <div class="mindmap-container">
+        <div class="mindmap-toolbar">
+          <button class="mm-btn" id="connect-btn" onclick="toggleConnectMode()">↔ Connect</button>
+          <button class="mm-btn" onclick="resetMindmap()">⟲ Reset</button>
+          <button class="mm-btn" onclick="exportMindmap()">↓ PNG</button>
+        </div>
+        <svg id="mindmap-svg"></svg>
+        <div class="mm-hint" id="mm-hint">Drag nodes · Tap Connect to draw links</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== DRAW TAB ===== -->
+  <section class="tab-panel" id="draw-panel">
+
+    <!-- View: Drawings grid -->
+    <div class="view active" id="draw-list-view">
+      <h2 class="section-title">Sketchbook</h2>
+      <p class="section-subtitle">Draw ideas. Free-form or tied to a source.</p>
+
+      <div class="draw-grid" id="draw-grid"></div>
+    </div>
+
+    <!-- View: Canvas editor -->
+    <div class="view" id="draw-editor-view">
+      <div class="draw-meta-bar">
+        <input type="text" id="draw-title-input" placeholder="Drawing title…" />
+        <select id="draw-source-select">
+          <option value="">No source (standalone)</option>
+        </select>
+      </div>
+
+      <div class="tool-bar" id="tool-bar">
+        <div class="tool-group">
+          <button class="tool-btn active" data-tool="pen" onclick="setTool('pen')" title="Pen">✎</button>
+          <button class="tool-btn" data-tool="eraser" onclick="setTool('eraser')" title="Eraser">⌫</button>
+        </div>
+        <div class="tool-group">
+          <button class="tool-btn" data-tool="line" onclick="setTool('line')" title="Line">╱</button>
+          <button class="tool-btn" data-tool="rect" onclick="setTool('rect')" title="Rectangle">▭</button>
+          <button class="tool-btn" data-tool="circle" onclick="setTool('circle')" title="Circle">○</button>
+          <button class="tool-btn" data-tool="arrow" onclick="setTool('arrow')" title="Arrow">→</button>
+          <button class="tool-btn" data-tool="text" onclick="setTool('text')" title="Text">T</button>
+        </div>
+        <div class="tool-group">
+          <span class="color-swatch active" style="background:#1a1a1a" data-color="#1a1a1a" onclick="setColor('#1a1a1a', this)"></span>
+          <span class="color-swatch" style="background:#d94d2a" data-color="#d94d2a" onclick="setColor('#d94d2a', this)"></span>
+          <span class="color-swatch" style="background:#c49a4a" data-color="#c49a4a" onclick="setColor('#c49a4a', this)"></span>
+          <span class="color-swatch" style="background:#5a7a4a" data-color="#5a7a4a" onclick="setColor('#5a7a4a', this)"></span>
+          <span class="color-swatch" style="background:#3a6a8a" data-color="#3a6a8a" onclick="setColor('#3a6a8a', this)"></span>
+          <span class="color-swatch" style="background:#7a4a8a" data-color="#7a4a8a" onclick="setColor('#7a4a8a', this)"></span>
+        </div>
+        <div class="tool-group">
+          <span class="tool-label">Size</span>
+          <input type="range" class="size-slider" id="size-slider" min="1" max="30" value="3" />
+        </div>
+        <div class="tool-group" style="margin-left: auto;">
+          <button class="tool-btn" onclick="undoDraw()" title="Undo">↶</button>
+          <button class="tool-btn" onclick="clearCanvas()" title="Clear">✕</button>
+        </div>
+      </div>
+
+      <div class="canvas-wrapper">
+        <canvas id="draw-canvas"></canvas>
+        <div class="canvas-toolbar-top">
+          <button class="mm-btn" onclick="saveDrawing()">✓ Save</button>
+          <button class="mm-btn" onclick="exportDrawing()">↓ PNG</button>
+        </div>
+      </div>
+      <p class="hint">Tap <b>T</b> then tap the canvas to add text · Shapes: click and drag</p>
+    </div>
+  </section>
+
+  <!-- ===== TASKS TAB ===== -->
+  <section class="tab-panel" id="tasks-panel">
+    <h2 class="section-title">Things to Do</h2>
+    <p class="section-subtitle">Set a time. Do the thing.</p>
+
+    <div class="input-card">
+      <textarea id="task-input" placeholder="What do you want to do?"></textarea>
+      <div class="input-row">
+        <input type="datetime-local" id="task-time" />
+        <button class="btn btn-accent" onclick="addTask()">Add</button>
+      </div>
+    </div>
+    <div class="item-list" id="tasks-list"></div>
+  </section>
+
+  <!-- ===== WORDS TAB ===== -->
+  <section class="tab-panel" id="translate-panel">
+    <h2 class="section-title">Word Collector</h2>
+    <p class="section-subtitle">Translate & build your vocabulary list.</p>
+
+    <div class="translator-box">
+      <div class="lang-bar">
+        <div class="lang-select">
+          <select id="source-lang">
+            <option value="en">EN — English</option>
+            <option value="ja">JA — Japanese</option>
+            <option value="th">TH — Thai</option>
+            <option value="de">DE — German</option>
+          </select>
+        </div>
+        <button class="icon-btn swap-btn" onclick="swapLanguages()" title="Swap languages">⇄</button>
+        <div class="lang-select">
+          <select id="target-lang">
+            <option value="th">TH — Thai</option>
+            <option value="ja">JA — Japanese</option>
+            <option value="en">EN — English</option>
+            <option value="de">DE — German</option>
+          </select>
+        </div>
+      </div>
+      <div class="trans-input">
+        <textarea id="source-text" placeholder="Type a word or phrase…"></textarea>
+      </div>
+      <div class="trans-output empty-state" id="trans-output">Translation will appear here</div>
+      <div class="trans-actions">
+        <button class="btn" onclick="doTranslate()">Translate</button>
+        <button class="btn btn-accent" onclick="saveVocab()">Save Word</button>
+      </div>
+    </div>
+
+    <div class="vocab-filter">
+      <button class="filter-chip active" data-filter="all" onclick="filterVocab('all', this)">All</button>
+      <button class="filter-chip" data-filter="en" onclick="filterVocab('en', this)">English</button>
+      <button class="filter-chip" data-filter="ja" onclick="filterVocab('ja', this)">Japanese</button>
+      <button class="filter-chip" data-filter="th" onclick="filterVocab('th', this)">Thai</button>
+    </div>
+
+    <div class="vocab-table" id="vocab-table">
+      <div class="vocab-row header">
+        <div>Word</div><div>Translation</div><div></div>
+      </div>
+      <div id="vocab-rows"></div>
+    </div>
+
+    <div class="export-bar">
+      <button class="btn btn-ghost" onclick="exportVocab()">↓ Export CSV</button>
+      <button class="btn btn-ghost" onclick="clearVocab()">✕ Clear all</button>
+    </div>
+    <p class="hint">CSV opens in Excel, Google Sheets, Numbers</p>
+  </section>
+</main>
+
+<!-- Drag ghost -->
+<div class="drag-ghost" id="drag-ghost"></div>
+
+<!-- MODAL: Add/Edit Book -->
+<div class="modal-backdrop" id="book-modal" onclick="closeModalIfBackdrop(event, 'book-modal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h3 id="book-modal-title">Add a Source</h3>
+    <div class="form-group">
+      <label class="form-label">Title / Book name</label>
+      <input type="text" class="form-input" id="book-title-input" placeholder="e.g. Thinking, Fast and Slow" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Author (optional)</label>
+      <input type="text" class="form-input" id="book-author-input" placeholder="e.g. Daniel Kahneman" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Category</label>
+      <select class="form-select" id="book-category-input"></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('book-modal')">Cancel</button>
+      <button class="btn btn-accent" onclick="saveBook()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Add Category -->
+<div class="modal-backdrop" id="cat-modal" onclick="closeModalIfBackdrop(event, 'cat-modal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h3>New Category</h3>
+    <div class="form-group">
+      <label class="form-label">Category name</label>
+      <input type="text" class="form-input" id="cat-name-input" placeholder="e.g. Philosophy" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('cat-modal')">Cancel</button>
+      <button class="btn btn-accent" onclick="saveCategory()">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Custom Confirm -->
+<div class="modal-backdrop" id="confirm-modal" style="z-index: 500;">
+  <div class="modal" style="max-width: 400px; text-align: center; padding-bottom: 30px;">
+    <h3 id="confirm-message" style="font-size: 16px; margin-bottom: 24px; font-family: 'Inter Tight', sans-serif; font-weight: 500; line-height: 1.5;">Are you sure?</h3>
+    <div class="modal-actions" style="margin-top: 0;">
+      <button class="btn btn-outline" onclick="closeConfirmModal()">Cancel</button>
+      <button class="btn btn-accent" id="confirm-btn">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Nav -->
+<nav class="tab-nav">
+  <button class="tab-btn active" data-tab="notes" onclick="switchTab('notes')">
+    <span class="tab-icon">✎</span><span>Notes</span>
+  </button>
+  <button class="tab-btn" data-tab="draw" onclick="switchTab('draw')">
+    <span class="tab-icon">◎</span><span>Draw</span>
+  </button>
+  <button class="tab-btn" data-tab="tasks" onclick="switchTab('tasks')">
+    <span class="tab-icon">◈</span><span>Tasks</span>
+  </button>
+  <button class="tab-btn" data-tab="translate" onclick="switchTab('translate')">
+    <span class="tab-icon">◐</span><span>Words</span>
+  </button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<!-- FIREBASE CLOUD SETUP -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+  import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+  import { getFirestore, doc, setDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+  const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+  const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+  if (firebaseConfig) {
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Global memory cache to override standard local storage
+    window.cloudStore = {}; 
+
+    const initAuth = async () => {
+      try {
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } else {
+          await signInAnonymously(auth);
+        }
+      } catch (err) {
+        console.error("Auth error", err);
+        document.getElementById('cloud-loader').style.display = 'none';
+      }
+    };
+
+    initAuth();
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        window.currentUserId = user.uid;
+        document.getElementById('cloud-status').style.display = 'flex';
+        
+        const userStorageRef = collection(db, 'artifacts', appId, 'users', user.uid, 'appData');
+        
+        onSnapshot(userStorageRef, (snapshot) => {
+          snapshot.forEach(docSnap => {
+            const key = docSnap.id;
+            const data = JSON.parse(docSnap.data().payload);
+            window.cloudStore[key] = data; // Keep in memory
+            localStorage.setItem(key, docSnap.data().payload); // Keep local fallback
+          });
+          
+          document.getElementById('cloud-loader').style.display = 'none';
+          
+          // Re-render UI after syncing cloud data
+          if(window.renderAllViews) window.renderAllViews();
+          
+        }, (error) => {
+          console.error("Cloud sync error:", error);
+          document.getElementById('cloud-loader').style.display = 'none';
+        });
+
+        // Expose a global function to push data to the cloud
+        window.saveToCloud = async (key, data) => {
+          try {
+            const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'appData', key);
+            await setDoc(docRef, { payload: JSON.stringify(data) });
+          } catch (e) {
+            console.error("Failed to push to cloud", e);
+            if(window.toast) window.toast('Saved locally (Cloud push failed)');
+          }
+        };
+      } else {
+        document.getElementById('cloud-loader').style.display = 'none';
+      }
+    });
+  } else {
+    // If not running in a connected environment, just hide loader and act normal
+    document.getElementById('cloud-loader').style.display = 'none';
+  }
+</script>
+
+<script>
+  // ============ STORAGE (Hybrid Cloud / Local) ============
+  const STORE = {
+    sources: 'thinkbook_sources',
+    notes: 'thinkbook_notes',         
+    categories: 'thinkbook_categories',
+    tasks: 'thinkbook_tasks',
+    vocab: 'thinkbook_vocab',
+    mindmap: 'thinkbook_mindmap',
+    drawings: 'thinkbook_drawings'    
+  };
+
+  const DEFAULT_CATEGORIES = ['Economics', 'Psychology', 'Money', 'Business', 'Other'];
+
+  function load(key, fallback = []) {
+    // 1. Try fetching from active cloud memory cache first
+    if (window.cloudStore && window.cloudStore[key]) {
+      return window.cloudStore[key];
+    }
+    // 2. Fallback to LocalStorage
+    try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); }
+    catch { return fallback; }
+  }
+
+  function save(key, data) {
+    // 1. Save to LocalStorage instantly for immediate UI feedback
+    try {
+      localStorage.setItem(key, JSON.stringify(data));
+    } catch (e) {
+      toast('Local storage full — delete some drawings');
+    }
+    
+    // 2. Update cloud memory cache
+    if (window.cloudStore) window.cloudStore[key] = data;
+    
+    // 3. Push quietly to Firestore Cloud
+    if (window.saveToCloud) window.saveToCloud(key, data);
+  }
+
+  if (!localStorage.getItem(STORE.categories)) {
+    save(STORE.categories, DEFAULT_CATEGORIES);
+  }
+
+  // ============ STATE ============
+  let currentTab = 'notes';
+  let currentView = 'sources-view';
+  let currentSourceId = null;
+  let currentCategoryFilter = 'all';
+  let editingBookId = null;
+  let currentDrawingId = null;
+
+  // ============ UTILS ============
+  function toast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => el.classList.remove('show'), 2000);
+  }
+
+  function escapeHTML(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function escapeAttr(str) {
+    return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  function sanitizeHTML(html) {
+    if (!html) return '';
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const badTags = doc.querySelectorAll('script, style, iframe, object, embed, link');
+    badTags.forEach(tag => tag.remove());
+    const allNodes = doc.querySelectorAll('*');
+    allNodes.forEach(node => {
+      for (let i = node.attributes.length - 1; i >= 0; i--) {
+        const attrName = node.attributes[i].name;
+        if (attrName.startsWith('on') || 
+           (attrName === 'href' && node.getAttribute('href').toLowerCase().startsWith('javascript:'))) {
+          node.removeAttribute(attrName);
+        }
+      }
+    });
+    return doc.body.innerHTML;
+  }
+
+  function formatDate(iso) {
+    const d = new Date(iso);
+    const now = new Date();
+    const diffMin = Math.floor((now - d) / 60000);
+    const diffHr = Math.floor((now - d) / 3600000);
+    const diffDay = Math.floor((now - d) / 86400000);
+    if (diffMin < 1) return 'just now';
+    if (diffMin < 60) return diffMin + 'm ago';
+    if (diffHr < 24) return diffHr + 'h ago';
+    if (diffDay < 7) return diffDay + 'd ago';
+    return d.toLocaleDateString();
+  }
+
+  function formatDueDate(iso) {
+    const d = new Date(iso);
+    const now = new Date();
+    const tomorrow = new Date(now); tomorrow.setDate(now.getDate() + 1);
+    const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    if (d.toDateString() === now.toDateString()) return 'Today ' + timeStr;
+    if (d.toDateString() === tomorrow.toDateString()) return 'Tomorrow ' + timeStr;
+    return d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' + timeStr;
+  }
+
+  // ============ RICH TEXT EDITOR (RTE) ============
+  window.formatText = function(command, value = null) {
+    document.execCommand(command, false, value);
+    const activeEditor = document.querySelector('.view.active .rich-editor');
+    if (activeEditor) activeEditor.focus();
+    document.querySelectorAll('.emoji-popover').forEach(p => p.classList.remove('active'));
+  }
+
+  window.toggleCustomPopover = function(id, event) {
+    event.stopPropagation();
+    const popover = document.getElementById(id);
+    const isActive = popover.classList.contains('active');
+    document.querySelectorAll('.emoji-popover').forEach(p => p.classList.remove('active'));
+    if (!isActive) {
+      popover.classList.add('active');
+    }
+  }
+
+  window.insertEmoji = function(emoji) {
+    const activeEditor = document.querySelector('.view.active .rich-editor');
+    if (activeEditor) {
+      activeEditor.focus();
+      document.execCommand('insertText', false, emoji);
+    }
+    document.querySelectorAll('.emoji-popover').forEach(p => p.classList.remove('active'));
+  }
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.emoji-popover') && !e.target.closest('.rte-btn[title="Emoji"]') && !e.target.closest('.rte-btn[title="Text Color"]') && !e.target.closest('.rte-btn[title="Text Size"]') && !e.target.closest('.rte-btn[title="Symbols"]')) {
+      document.querySelectorAll('.emoji-popover').forEach(p => p.classList.remove('active'));
+    }
+  });
+
+
+  // ============ MODALS ============
+  window.openModal = function(id) { document.getElementById(id).classList.add('active'); }
+  window.closeModal = function(id) { document.getElementById(id).classList.remove('active'); }
+  window.closeModalIfBackdrop = function(e, id) {
+    if (e.target.id === id) closeModal(id);
+  }
+
+  // ============ CUSTOM CONFIRM ============
+  let confirmCallback = null;
+
+  window.showConfirm = function(message, callback) {
+    document.getElementById('confirm-message').textContent = message;
+    confirmCallback = callback;
+    document.getElementById('confirm-modal').classList.add('active');
+  }
+
+  window.closeConfirmModal = function() {
+    document.getElementById('confirm-modal').classList.remove('active');
+    confirmCallback = null;
+  }
+
+  document.getElementById('confirm-btn').addEventListener('click', () => {
+    if (confirmCallback) confirmCallback();
+    closeConfirmModal();
+  });
+
+  // ============ HEADER ============
+  window.updateHeader = function() {
+    const left = document.getElementById('header-content');
+    const action = document.getElementById('header-action');
+    action.style.display = 'none';
+
+    if (currentTab === 'notes' && currentView === 'sources-view') {
+      left.innerHTML = '<div class="brand"><h1>Thinkbook</h1> <span class="dot"></span></div>';
+    } else if (currentTab === 'notes' && currentView === 'source-view') {
+      left.innerHTML = '<button class="back-btn" onclick="showView(\'sources-view\')">←</button><div class="header-crumb"><div class="label">Source</div></div>';
+    } else if (currentTab === 'notes' && currentView === 'mindmap-view') {
+      left.innerHTML = '<button class="back-btn" onclick="showView(\'source-view\')">←</button><div class="header-crumb"><div class="label">Mind Map</div></div>';
+    } else if (currentTab === 'draw' && currentView === 'draw-list-view') {
+      left.innerHTML = '<div class="brand"><h1>Thinkbook</h1> <span class="dot"></span></div>';
+    } else if (currentTab === 'draw' && currentView === 'draw-editor-view') {
+      left.innerHTML = '<button class="back-btn" onclick="exitDrawEditor()">←</button><div class="header-crumb"><div class="label">Drawing</div></div>';
+    } else {
+      left.innerHTML = '<div class="brand"><h1>Thinkbook</h1> <span class="dot"></span></div>';
+    }
+  }
+
+  window.headerAction = function() {}
+
+  // ============ TABS/VIEWS ============
+  window.switchTab = function(tab) {
+    currentTab = tab;
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(tab + '-panel').classList.add('active');
+    document.querySelector(`.tab-btn[data-tab="${tab}"]`).classList.add('active');
+
+    if (tab === 'notes') {
+      currentView = 'sources-view';
+      document.querySelectorAll('#notes-panel .view').forEach(v => v.classList.remove('active'));
+      document.getElementById('sources-view').classList.add('active');
+      renderSources();
+      renderInbox();
+    } else if (tab === 'draw') {
+      currentView = 'draw-list-view';
+      document.querySelectorAll('#draw-panel .view').forEach(v => v.classList.remove('active'));
+      document.getElementById('draw-list-view').classList.add('active');
+      renderDrawings();
+    }
+    updateHeader();
+  }
+
+  window.showView = function(viewId) {
+    currentView = viewId;
+    const panel = currentTab === 'draw' ? 'draw-panel' : 'notes-panel';
+    document.querySelectorAll(`#${panel} .view`).forEach(v => v.classList.remove('active'));
+    document.getElementById(viewId).classList.add('active');
+    updateHeader();
+    if (viewId === 'sources-view') {
+      renderSources();
+      renderInbox();
+    }
+  }
+
+  // ============ CATEGORIES ============
+  window.renderCategories = function() {
+    const bar = document.getElementById('category-bar');
+    const cats = load(STORE.categories, DEFAULT_CATEGORIES);
+    
+    const allChip = `<button class="cat-chip ${currentCategoryFilter === 'all' ? 'active' : ''}" onclick="setCategoryFilter('all')">All</button>`;
+    
+    const catChips = cats.map(c =>
+      `<div class="cat-chip ${currentCategoryFilter === c ? 'active' : ''}" style="display:inline-flex; align-items:center; gap:8px; padding: 4px 12px;">
+         <span style="cursor:pointer;" onclick="setCategoryFilter('${escapeAttr(c)}')">${escapeHTML(c)}</span>
+         <span style="cursor:pointer; opacity:0.5; font-size:14px; font-weight:bold; line-height:1;" onclick="deleteCategory('${escapeAttr(c)}', event)" title="Delete category">✕</span>
+       </div>`
+    ).join('');
+    
+    bar.innerHTML = allChip + catChips + `<button class="cat-chip add-cat" onclick="openModal('cat-modal')">+ Add</button>`;
+  }
+
+  window.setCategoryFilter = function(cat) {
+    currentCategoryFilter = cat;
+    renderCategories();
+    renderSources();
+  }
+
+  window.deleteCategory = function(cat, e) {
+    e.stopPropagation();
+    showConfirm(`Delete category "${cat}"? Notes will NOT be deleted.`, () => {
+      let cats = load(STORE.categories, DEFAULT_CATEGORIES);
+      cats = cats.filter(c => c !== cat);
+      save(STORE.categories, cats);
+      
+      if (currentCategoryFilter === cat) {
+        currentCategoryFilter = 'all';
+      }
+      
+      renderCategories();
+      toast('Category deleted');
+    });
+  }
+
+  window.saveCategory = function() {
+    const input = document.getElementById('cat-name-input');
+    const name = input.value.trim();
+    if (!name) return toast('Name the category');
+    const cats = load(STORE.categories, DEFAULT_CATEGORIES);
+    if (cats.includes(name)) return toast('Already exists');
+    cats.push(name);
+    save(STORE.categories, cats);
+    input.value = '';
+    closeModal('cat-modal');
+    renderCategories();
+    toast('Category added');
+  }
+
+  // ============ QUICK CAPTURE & INBOX ============
+  window.captureQuickNote = function() {
+    const input = document.getElementById('quick-note');
+    const text = input.innerHTML.trim();
+    
+    if (!text || text === '<br>') return toast('Write something first');
+
+    const notes = load(STORE.notes);
+    notes.unshift({
+      id: Date.now(),
+      sourceId: null,
+      text: sanitizeHTML(text),
+      date: new Date().toISOString()
+    });
+    save(STORE.notes, notes);
+    
+    input.innerHTML = '';
+    renderInbox();
+    renderSources(); 
+    toast('Captured. Drag it onto a book when you\'re ready.');
+  }
+
+  window.renderInbox = function() {
+    const inboxSection = document.getElementById('inbox-section');
+    const list = document.getElementById('inbox-list');
+    const countEl = document.getElementById('inbox-count');
+    const unsorted = load(STORE.notes).filter(n => !n.sourceId);
+
+    countEl.textContent = unsorted.length;
+
+    if (!unsorted.length) {
+      inboxSection.style.display = 'none';
+      return;
+    }
+
+    inboxSection.style.display = 'block';
+    list.innerHTML = unsorted.map(n => `
+      <div class="inbox-note" data-note-id="${n.id}">
+        <span class="drag-handle">⋮⋮</span>
+        <button class="delete" onclick="event.stopPropagation(); deleteNote(${n.id})">✕</button>
+        <div class="note-body">${n.text}</div>
+        <div class="note-time">${formatDate(n.date)}</div>
+      </div>
+    `).join('');
+
+    list.querySelectorAll('.inbox-note').forEach(el => {
+      setupDragForNote(el);
+    });
+  }
+
+  // ============ DRAG & DROP ============
+  let dragState = null;
+
+  function setupDragForNote(el) {
+    const id = parseInt(el.dataset.noteId);
+
+    function onStart(e) {
+      if (e.target.classList.contains('delete')) return;
+      e.preventDefault();
+      const pointer = e.touches ? e.touches[0] : e;
+      const note = load(STORE.notes).find(n => n.id === id);
+      if (!note) return;
+
+      dragState = {
+        id,
+        text: note.text,
+        el,
+        startX: pointer.clientX,
+        startY: pointer.clientY,
+        moved: false
+      };
+
+      const ghost = document.getElementById('drag-ghost');
+      const tmp = document.createElement('div');
+      tmp.innerHTML = note.text;
+      const plainText = tmp.textContent || tmp.innerText || "";
+      ghost.textContent = plainText.slice(0, 80) + (plainText.length > 80 ? '…' : '');
+      
+      positionGhost(pointer.clientX, pointer.clientY);
+    }
+
+    function onMove(e) {
+      if (!dragState || dragState.id !== id) return;
+      e.preventDefault();
+      const pointer = e.touches ? e.touches[0] : e;
+      const dx = Math.abs(pointer.clientX - dragState.startX);
+      const dy = Math.abs(pointer.clientY - dragState.startY);
+
+      if (!dragState.moved && (dx > 6 || dy > 6)) {
+        dragState.moved = true;
+        dragState.el.classList.add('dragging');
+        document.getElementById('drag-ghost').classList.add('active');
+      }
+
+      if (dragState.moved) {
+        positionGhost(pointer.clientX, pointer.clientY);
+        highlightDropTarget(pointer.clientX, pointer.clientY);
+      }
+    }
+
+    function onEnd(e) {
+      if (!dragState || dragState.id !== id) return;
+
+      if (dragState.moved) {
+        const pointer = (e.changedTouches && e.changedTouches[0]) || e;
+        const dropTarget = findDropTarget(pointer.clientX, pointer.clientY);
+        if (dropTarget) {
+          assignNoteToBook(dragState.id, parseInt(dropTarget.dataset.bookId));
+        }
+      }
+
+      cleanupDrag();
+    }
+
+    el.addEventListener('mousedown', onStart);
+    el.addEventListener('touchstart', onStart, { passive: false });
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('touchmove', onMove, { passive: false });
+    document.addEventListener('mouseup', onEnd);
+    document.addEventListener('touchend', onEnd);
+  }
+
+  function positionGhost(x, y) {
+    const ghost = document.getElementById('drag-ghost');
+    ghost.style.left = (x + 12) + 'px';
+    ghost.style.top = (y + 12) + 'px';
+  }
+
+  function findDropTarget(x, y) {
+    const elements = document.elementsFromPoint(x, y);
+    return elements.find(el => el.classList && el.classList.contains('book-card') && el.dataset.bookId);
+  }
+
+  function highlightDropTarget(x, y) {
+    document.querySelectorAll('.book-card.drop-target').forEach(el => el.classList.remove('drop-target'));
+    const target = findDropTarget(x, y);
+    if (target) target.classList.add('drop-target');
+  }
+
+  function cleanupDrag() {
+    if (dragState && dragState.el) dragState.el.classList.remove('dragging');
+    document.getElementById('drag-ghost').classList.remove('active');
+    document.querySelectorAll('.book-card.drop-target').forEach(el => el.classList.remove('drop-target'));
+    dragState = null;
+  }
+
+  function assignNoteToBook(noteId, bookId) {
+    const notes = load(STORE.notes);
+    const note = notes.find(n => n.id === noteId);
+    const book = load(STORE.sources).find(s => s.id === bookId);
+    if (!note || !book) return;
+    note.sourceId = bookId;
+    save(STORE.notes, notes);
+    renderInbox();
+    renderSources();
+    toast(`Filed to "${book.title}"`);
+  }
+
+  // ============ SOURCES ============
+  window.openBookModal = function(isEdit) {
+    editingBookId = null;
+    const title = document.getElementById('book-modal-title');
+    const catSelect = document.getElementById('book-category-input');
+    const titleInput = document.getElementById('book-title-input');
+    const authorInput = document.getElementById('book-author-input');
+
+    const cats = load(STORE.categories, DEFAULT_CATEGORIES);
+    catSelect.innerHTML = cats.map(c => `<option value="${escapeAttr(c)}">${escapeHTML(c)}</option>`).join('');
+
+    if (isEdit && currentSourceId) {
+      const src = load(STORE.sources).find(s => s.id === currentSourceId);
+      if (src) {
+        editingBookId = src.id;
+        title.textContent = 'Edit Source';
+        titleInput.value = src.title;
+        authorInput.value = src.author || '';
+        catSelect.value = src.category;
+      }
+    } else {
+      title.textContent = 'Add a Source';
+      titleInput.value = '';
+      authorInput.value = '';
+    }
+    openModal('book-modal');
+    setTimeout(() => titleInput.focus(), 100);
+  }
+
+  window.saveBook = function() {
+    const title = document.getElementById('book-title-input').value.trim();
+    const author = document.getElementById('book-author-input').value.trim();
+    const category = document.getElementById('book-category-input').value;
+    if (!title) return toast('Title required');
+
+    const sources = load(STORE.sources);
+    if (editingBookId) {
+      const src = sources.find(s => s.id === editingBookId);
+      if (src) { src.title = title; src.author = author; src.category = category; }
+      save(STORE.sources, sources);
+      toast('Updated');
+      if (currentView === 'source-view') renderSourceDetail();
+    } else {
+      sources.unshift({
+        id: Date.now(),
+        title, author, category,
+        created: new Date().toISOString()
+      });
+      save(STORE.sources, sources);
+      toast('Source added');
+    }
+    closeModal('book-modal');
+    renderSources();
+  }
+
+  window.openSource = function(id) {
+    currentSourceId = id;
+    showView('source-view');
+    renderSourceDetail();
+  }
+
+  window.renderSourceDetail = function() {
+    const src = load(STORE.sources).find(s => s.id === currentSourceId);
+    if (!src) { showView('sources-view'); return; }
+    document.getElementById('source-cat').textContent = src.category;
+    document.getElementById('source-title').textContent = src.title;
+    document.getElementById('source-author').textContent = src.author || 'Unknown author';
+    renderNotes();
+  }
+
+  window.deleteCurrentSource = function() {
+    if (!currentSourceId) return;
+    showConfirm('Delete this source and all its notes? (Drawings will be kept as standalone.)', () => {
+      const sources = load(STORE.sources).filter(s => s.id !== currentSourceId);
+      const notes = load(STORE.notes).filter(n => n.sourceId !== currentSourceId);
+      save(STORE.sources, sources);
+      save(STORE.notes, notes);
+
+      const drawings = load(STORE.drawings);
+      drawings.forEach(d => { if (d.sourceId === currentSourceId) d.sourceId = null; });
+      save(STORE.drawings, drawings);
+
+      const mm = load(STORE.mindmap, {});
+      delete mm[currentSourceId];
+      save(STORE.mindmap, mm);
+
+      currentSourceId = null;
+      showView('sources-view');
+      toast('Source deleted');
+    });
+  }
+
+  window.renderSources = function() {
+    const grid = document.getElementById('book-grid');
+    let sources = load(STORE.sources);
+    if (currentCategoryFilter !== 'all') {
+      sources = sources.filter(s => s.category === currentCategoryFilter);
+    }
+
+    const notes = load(STORE.notes);
+    const noteCount = (sourceId) => notes.filter(n => n.sourceId === sourceId).length;
+
+    const addCard = `
+      <div class="book-card add-book" onclick="openBookModal(false)">
+        <div class="plus">+</div>
+        <div class="add-label">Add Source</div>
+      </div>
+    `;
+
+    if (!sources.length) {
+      grid.innerHTML = addCard;
+      return;
+    }
+
+    grid.innerHTML = sources.map(s => `
+      <div class="book-card" data-book-id="${s.id}" onclick="openSource(${s.id})">
+        <div>
+          <div class="cat-label">${escapeHTML(s.category)}</div>
+          <h3>${escapeHTML(s.title)}</h3>
+          ${s.author ? `<div class="author">${escapeHTML(s.author)}</div>` : ''}
+        </div>
+        <div class="note-count">◉ ${noteCount(s.id)} note${noteCount(s.id) !== 1 ? 's' : ''}</div>
+      </div>
+    `).join('') + addCard;
+  }
+
+  // ============ NOTES ============
+  window.addNote = function() {
+    const input = document.getElementById('note-input');
+    const text = input.innerHTML.trim();
+    if (!text || text === '<br>') return toast('Write something first');
+    if (!currentSourceId) return toast('Pick a source first');
+
+    const notes = load(STORE.notes);
+    notes.unshift({
+      id: Date.now(),
+      sourceId: currentSourceId,
+      text: sanitizeHTML(text),
+      date: new Date().toISOString()
+    });
+    save(STORE.notes, notes);
+    input.innerHTML = '';
+    renderNotes();
+    toast('Note saved');
+  }
+
+  window.deleteNote = function(id) {
+    const notes = load(STORE.notes).filter(n => n.id !== id);
+    save(STORE.notes, notes);
+
+    const mm = load(STORE.mindmap, {});
+    Object.values(mm).forEach(m => {
+      if (m.positions) delete m.positions[id];
+      if (m.links) m.links = m.links.filter(l => l.from !== id && l.to !== id);
+    });
+    save(STORE.mindmap, mm);
+
+    renderInbox();
+    renderNotes();
+    renderSources();
+    toast('Deleted');
+  }
+
+  window.renderNotes = function() {
+    const list = document.getElementById('notes-list');
+    const notes = load(STORE.notes).filter(n => n.sourceId === currentSourceId);
+
+    if (!notes.length) {
+      list.innerHTML = '<div class="empty">No notes yet. Add the first idea.</div>';
+      return;
+    }
+
+    list.innerHTML = notes.map(n => `
+      <div class="item">
+        <div class="item-actions">
+          <button class="icon-btn" onclick="deleteNote(${n.id})" title="Delete">✕</button>
+        </div>
+        <div class="item-text">${n.text}</div>
+        <div class="item-meta">
+          <span>${formatDate(n.date)}</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  window.exportNotesCsv = function(sourceId) {
+    let notes = load(STORE.notes);
+    const sources = load(STORE.sources);
+    
+    if (sourceId) {
+      notes = notes.filter(n => n.sourceId === sourceId);
+    }
+    
+    if (!notes.length) return toast('No notes to export');
+    
+    const header = 'Source,Note,Date\n';
+    const rows = notes.map(n => {
+      const src = n.sourceId ? sources.find(s => s.id === n.sourceId) : null;
+      const srcTitle = src ? src.title : 'Inbox (Unsorted)';
+      
+      const tmp = document.createElement('div');
+      tmp.innerHTML = n.text;
+      const plainText = tmp.textContent || tmp.innerText || "";
+      
+      return `"${srcTitle.replace(/"/g, '""')}","${plainText.replace(/"/g, '""')}","${new Date(n.date).toLocaleDateString()}"`;
+    }).join('\n');
+    
+    const csv = '\ufeff' + header + rows;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], {type: 'text/csv;charset=utf-8'}));
+    a.download = `thinkbook-notes-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast('Notes downloaded');
+  }
+
+  // ============ MIND MAP ============
+  let mmState = {
+    nodes: [], links: [],
+    dragId: null, dragOffset: {x:0, y:0},
+    viewBox: {x:0, y:0, w:800, h:600},
+    panning: false, panStart: null,
+    connectMode: false, connectFrom: null, selectedNode: null
+  };
+
+  window.renderMindmap = function() {
+    if (!currentSourceId) return;
+    const source = load(STORE.sources).find(s => s.id === currentSourceId);
+    const notes = load(STORE.notes).filter(n => n.sourceId === currentSourceId);
+    const mmData = load(STORE.mindmap, {})[currentSourceId] || { positions: {}, links: [] };
+    if (!source) return;
+
+    const centerNode = { id: 'center', text: source.title, x: 400, y: 300, isCenter: true };
+    const noteNodes = notes.map((n, i) => {
+      const saved = mmData.positions[n.id];
+      const tmp = document.createElement('div');
+      tmp.innerHTML = n.text;
+      const plainText = tmp.textContent || tmp.innerText || "";
+      
+      if (saved) return { id: n.id, text: plainText, x: saved.x, y: saved.y, isCenter: false };
+      const angle = (i / Math.max(notes.length, 1)) * Math.PI * 2 - Math.PI / 2;
+      return { id: n.id, text: plainText, x: 400 + Math.cos(angle) * 200, y: 300 + Math.sin(angle) * 200, isCenter: false };
+    });
+
+    mmState.nodes = [centerNode, ...noteNodes];
+    const defaultLinks = noteNodes.map(n => ({ from: 'center', to: n.id, custom: false }));
+    const customLinks = (mmData.links || []).map(l => ({ ...l, custom: true }));
+    mmState.links = [...defaultLinks, ...customLinks];
+    drawMindmap();
+  }
+
+  function drawMindmap() {
+    const svg = document.getElementById('mindmap-svg');
+    const vb = mmState.viewBox;
+    svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
+    svg.innerHTML = '';
+
+    mmState.links.forEach(link => {
+      const from = mmState.nodes.find(n => n.id === link.from);
+      const to = mmState.nodes.find(n => n.id === link.to);
+      if (!from || !to) return;
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      const mx = (from.x + to.x) / 2;
+      const my = (from.y + to.y) / 2;
+      path.setAttribute('d', `M ${from.x} ${from.y} Q ${mx} ${my} ${to.x} ${to.y}`);
+      path.classList.add('mm-link');
+      if (link.custom) path.classList.add('custom');
+      svg.appendChild(path);
+    });
+
+    mmState.nodes.forEach(node => {
+      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      g.classList.add('mm-node');
+      if (node.isCenter) g.classList.add('center-node');
+      if (mmState.selectedNode === node.id) g.classList.add('selected');
+      g.setAttribute('data-id', node.id);
+      g.setAttribute('transform', `translate(${node.x}, ${node.y})`);
+
+      const maxWidth = node.isCenter ? 180 : 140;
+      const fontSize = node.isCenter ? 14 : 12;
+      const lines = wrapText(node.text, maxWidth, fontSize);
+      const lineHeight = fontSize * 1.25;
+      const padX = 14, padY = 10;
+      const boxW = Math.min(maxWidth + padX * 2, Math.max(...lines.map(l => l.length * fontSize * 0.55)) + padX * 2);
+      const boxH = lines.length * lineHeight + padY * 2;
+
+      const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      rect.setAttribute('x', -boxW / 2);
+      rect.setAttribute('y', -boxH / 2);
+      rect.setAttribute('width', boxW);
+      rect.setAttribute('height', boxH);
+      rect.setAttribute('rx', 10);
+      rect.classList.add('node-bg');
+      g.appendChild(rect);
+
+      const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      textEl.setAttribute('text-anchor', 'middle');
+      textEl.setAttribute('font-size', fontSize);
+      if (node.isCenter) textEl.setAttribute('font-weight', '700');
+      textEl.classList.add('node-text');
+      const startY = -((lines.length - 1) * lineHeight) / 2 + fontSize * 0.35;
+      lines.forEach((line, i) => {
+        const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+        tspan.setAttribute('x', 0);
+        tspan.setAttribute('y', startY + i * lineHeight);
+        tspan.textContent = line;
+        textEl.appendChild(tspan);
+      });
+      g.appendChild(textEl);
+      svg.appendChild(g);
+    });
+  }
+
+  function wrapText(text, maxWidth, fontSize) {
+    const avgCharWidth = fontSize * 0.55;
+    const maxChars = Math.floor(maxWidth / avgCharWidth);
+    const words = text.split(/\s+/);
+    const lines = [];
+    let line = '';
+    for (const w of words) {
+      if ((line + ' ' + w).trim().length <= maxChars) {
+        line = (line + ' ' + w).trim();
+      } else {
+        if (line) lines.push(line);
+        if (w.length > maxChars) {
+          let chunk = w;
+          while (chunk.length > maxChars) {
+            lines.push(chunk.slice(0, maxChars - 1) + '-');
+            chunk = chunk.slice(maxChars - 1);
+          }
+          line = chunk;
+        } else { line = w; }
+      }
+      if (lines.length >= 4) break;
+    }
+    if (line && lines.length < 4) lines.push(line);
+    if (lines.length === 4 && line !== lines[3]) lines[3] = lines[3].slice(0, -1) + '…';
+    return lines;
+  }
+
+  window.toggleConnectMode = function() {
+    mmState.connectMode = !mmState.connectMode;
+    mmState.connectFrom = null;
+    mmState.selectedNode = null;
+    document.getElementById('connect-btn').classList.toggle('active', mmState.connectMode);
+    document.getElementById('mindmap-svg').classList.toggle('connecting', mmState.connectMode);
+    document.getElementById('mm-hint').textContent = mmState.connectMode
+      ? 'Tap two nodes to link · Tap same node to cancel'
+      : 'Drag nodes · Tap Connect to draw links';
+    drawMindmap();
+  }
+
+  window.resetMindmap = function() {
+    showConfirm('Reset layout and remove custom links?', () => {
+      const mm = load(STORE.mindmap, {});
+      delete mm[currentSourceId];
+      save(STORE.mindmap, mm);
+      mmState.viewBox = {x:0, y:0, w:800, h:600};
+      renderMindmap();
+      toast('Reset');
+    });
+  }
+
+  function saveMindmapState() {
+    const mm = load(STORE.mindmap, {});
+    if (!mm[currentSourceId]) mm[currentSourceId] = { positions: {}, links: [] };
+    mm[currentSourceId].positions = {};
+    mmState.nodes.forEach(n => {
+      if (!n.isCenter) mm[currentSourceId].positions[n.id] = { x: n.x, y: n.y };
+    });
+    mm[currentSourceId].links = mmState.links.filter(l => l.custom).map(l => ({from: l.from, to: l.to}));
+    save(STORE.mindmap, mm);
+  }
+
+  (function setupMindmap() {
+    const svg = document.getElementById('mindmap-svg');
+
+    function getPointer(evt) {
+      const pt = svg.createSVGPoint();
+      const src = evt.touches ? evt.touches[0] : evt;
+      pt.x = src.clientX;
+      pt.y = src.clientY;
+      const ctm = svg.getScreenCTM();
+      if (!ctm) return {x: 0, y: 0};
+      return pt.matrixTransform(ctm.inverse());
+    }
+
+    function onStart(evt) {
+      evt.preventDefault();
+      const target = evt.target.closest('.mm-node');
+      const p = getPointer(evt);
+
+      if (target) {
+        const id = target.getAttribute('data-id');
+        const node = mmState.nodes.find(n => String(n.id) === id);
+        if (!node) return;
+
+        if (mmState.connectMode) {
+          if (!mmState.connectFrom) {
+            mmState.connectFrom = node.id;
+            mmState.selectedNode = node.id;
+          } else if (mmState.connectFrom === node.id) {
+            mmState.connectFrom = null;
+            mmState.selectedNode = null;
+          } else {
+            const exists = mmState.links.some(l =>
+              (l.from === mmState.connectFrom && l.to === node.id) ||
+              (l.from === node.id && l.to === mmState.connectFrom));
+            if (!exists) {
+              mmState.links.push({from: mmState.connectFrom, to: node.id, custom: true});
+              saveMindmapState();
+              toast('Linked');
+            } else { toast('Already linked'); }
+            mmState.connectFrom = null;
+            mmState.selectedNode = null;
+          }
+          drawMindmap();
+          return;
+        }
+
+        mmState.dragId = node.id;
+        mmState.dragOffset.x = p.x - node.x;
+        mmState.dragOffset.y = p.y - node.y;
+      } else {
+        mmState.panning = true;
+        mmState.panStart = {x: p.x, y: p.y, vbX: mmState.viewBox.x, vbY: mmState.viewBox.y};
+        svg.classList.add('grabbing');
+      }
+    }
+
+    function onMove(evt) {
+      if (!mmState.dragId && !mmState.panning) return;
+      evt.preventDefault();
+      const p = getPointer(evt);
+      if (mmState.dragId !== null) {
+        const node = mmState.nodes.find(n => n.id === mmState.dragId);
+        if (node) { node.x = p.x - mmState.dragOffset.x; node.y = p.y - mmState.dragOffset.y; drawMindmap(); }
+      } else if (mmState.panning) {
+        mmState.viewBox.x = mmState.panStart.vbX - (p.x - mmState.panStart.x);
+        mmState.viewBox.y = mmState.panStart.vbY - (p.y - mmState.panStart.y);
+        drawMindmap();
+      }
+    }
+
+    function onEnd() {
+      if (mmState.dragId !== null) saveMindmapState();
+      mmState.dragId = null;
+      mmState.panning = false;
+      svg.classList.remove('grabbing');
+    }
+
+    svg.addEventListener('mousedown', onStart);
+    svg.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onEnd);
+    svg.addEventListener('touchstart', onStart, {passive: false});
+    svg.addEventListener('touchmove', onMove, {passive: false});
+    window.addEventListener('touchend', onEnd);
+
+    let pinchStart = null;
+    svg.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 2) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        pinchStart = {dist: Math.hypot(dx, dy), vbW: mmState.viewBox.w, vbH: mmState.viewBox.h};
+      }
+    });
+    svg.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 2 && pinchStart) {
+        e.preventDefault();
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const scale = pinchStart.dist / Math.hypot(dx, dy);
+        const newW = Math.max(300, Math.min(2000, pinchStart.vbW * scale));
+        const newH = Math.max(300, Math.min(2000, pinchStart.vbH * scale));
+        const cx = mmState.viewBox.x + mmState.viewBox.w / 2;
+        const cy = mmState.viewBox.y + mmState.viewBox.h / 2;
+        mmState.viewBox.w = newW;
+        mmState.viewBox.h = newH;
+        mmState.viewBox.x = cx - newW / 2;
+        mmState.viewBox.y = cy - newH / 2;
+        drawMindmap();
+      }
+    }, {passive: false});
+    svg.addEventListener('touchend', () => { pinchStart = null; });
+
+    svg.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const scale = e.deltaY > 0 ? 1.1 : 0.9;
+      const newW = Math.max(300, Math.min(2000, mmState.viewBox.w * scale));
+      const newH = Math.max(300, Math.min(2000, mmState.viewBox.h * scale));
+      const cx = mmState.viewBox.x + mmState.viewBox.w / 2;
+      const cy = mmState.viewBox.y + mmState.viewBox.h / 2;
+      mmState.viewBox.w = newW;
+      mmState.viewBox.h = newH;
+      mmState.viewBox.x = cx - newW / 2;
+      mmState.viewBox.y = cy - newH / 2;
+      drawMindmap();
+    }, {passive: false});
+  })();
+
+  window.exportMindmap = function() {
+    const src = load(STORE.sources).find(s => s.id === currentSourceId);
+    const svg = document.getElementById('mindmap-svg');
+    const clone = svg.cloneNode(true);
+    const vb = mmState.viewBox;
+    clone.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
+    clone.setAttribute('width', 1600);
+    clone.setAttribute('height', 1200);
+
+    const styles = `<style>
+      .mm-link { stroke: #a8a49a; stroke-width: 1.5; fill: none; }
+      .mm-link.custom { stroke: #d94d2a; stroke-width: 2; stroke-dasharray: 4 3; }
+      .node-bg { fill: #fff; stroke: #e8e2d5; stroke-width: 1.5; }
+      .mm-node.center-node .node-bg { fill: #1a1a1a; }
+      .mm-node.center-node .node-text { fill: #f5f1e8; }
+      .node-text { fill: #1a1a1a; font-family: 'Inter Tight', sans-serif; font-size: 12px; }
+    </style>`;
+    let svgStr = new XMLSerializer().serializeToString(clone);
+    svgStr = svgStr.replace('<svg', `<svg xmlns="http://www.w3.org/2000/svg"`);
+    svgStr = svgStr.replace('>', `>${styles}`);
+
+    const img = new Image();
+    const url = URL.createObjectURL(new Blob([svgStr], {type: 'image/svg+xml'}));
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1600; canvas.height = 1200;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#f5f1e8';
+      ctx.fillRect(0, 0, 1600, 1200);
+      ctx.drawImage(img, 0, 0, 1600, 1200);
+      canvas.toBlob(blob => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `mindmap-${(src?.title || 'map').replace(/[^a-z0-9]/gi, '-').toLowerCase()}.png`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+        toast('Exported');
+      });
+      URL.revokeObjectURL(url);
+    };
+    img.onerror = () => { toast('Export failed'); URL.revokeObjectURL(url); };
+    img.src = url;
+  }
+
+  // ============ DRAW TAB ============
+  let drawState = {
+    tool: 'pen', color: '#1a1a1a', size: 3, strokes: [],
+    currentStroke: null, startPoint: null, previewStroke: null,
+    canvas: null, ctx: null, width: 0, height: 0
+  };
+
+  function initCanvas() {
+    const canvas = document.getElementById('draw-canvas');
+    drawState.canvas = canvas;
+    drawState.ctx = canvas.getContext('2d');
+
+    const resize = () => {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      drawState.width = rect.width;
+      drawState.height = rect.height;
+      drawState.ctx.scale(dpr, dpr);
+      redrawCanvas();
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    function getPoint(e) {
+      const rect = canvas.getBoundingClientRect();
+      const pointer = e.touches ? e.touches[0] : e;
+      return { x: pointer.clientX - rect.left, y: pointer.clientY - rect.top };
+    }
+
+    function onStart(e) {
+      if (drawState.tool === 'text') return;
+      e.preventDefault();
+      const pt = getPoint(e);
+      drawState.startPoint = pt;
+
+      if (drawState.tool === 'pen' || drawState.tool === 'eraser') {
+        drawState.currentStroke = { tool: drawState.tool, color: drawState.color, size: drawState.size, points: [pt] };
+      }
+    }
+
+    function onMove(e) {
+      if (!drawState.startPoint) return;
+      e.preventDefault();
+      const pt = getPoint(e);
+
+      if (drawState.tool === 'pen' || drawState.tool === 'eraser') {
+        drawState.currentStroke.points.push(pt);
+        redrawCanvas();
+        drawStroke(drawState.currentStroke);
+      } else if (['line', 'rect', 'circle', 'arrow'].includes(drawState.tool)) {
+        drawState.previewStroke = { tool: drawState.tool, color: drawState.color, size: drawState.size, start: drawState.startPoint, end: pt };
+        redrawCanvas();
+        drawStroke(drawState.previewStroke);
+      }
+    }
+
+    function onEnd(e) {
+      if (!drawState.startPoint) return;
+      if (drawState.currentStroke) { drawState.strokes.push(drawState.currentStroke); drawState.currentStroke = null; }
+      else if (drawState.previewStroke) { drawState.strokes.push(drawState.previewStroke); drawState.previewStroke = null; }
+      drawState.startPoint = null;
+      redrawCanvas();
+    }
+
+    function onCanvasTap(e) {
+      if (drawState.tool !== 'text') return;
+      const pt = getPoint(e);
+      createTextInput(pt.x, pt.y);
+    }
+
+    canvas.addEventListener('mousedown', (e) => {
+      if (drawState.tool === 'text') { onCanvasTap(e); return; }
+      onStart(e);
+    });
+    canvas.addEventListener('mousemove', onMove);
+    canvas.addEventListener('mouseup', onEnd);
+    canvas.addEventListener('mouseleave', onEnd);
+    canvas.addEventListener('touchstart', (e) => {
+      if (drawState.tool === 'text') { e.preventDefault(); onCanvasTap(e); return; }
+      onStart(e);
+    }, {passive: false});
+    canvas.addEventListener('touchmove', onMove, {passive: false});
+    canvas.addEventListener('touchend', onEnd);
+  }
+
+  function createTextInput(x, y) {
+    const wrapper = document.querySelector('.canvas-wrapper');
+    const existing = wrapper.querySelector('.text-input-overlay');
+    if (existing) existing.remove();
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'text-input-overlay';
+    input.style.left = x + 'px';
+    input.style.top = (y - 14) + 'px';
+    input.style.color = drawState.color;
+    input.style.fontSize = Math.max(drawState.size * 4, 14) + 'px';
+    input.placeholder = 'Type…';
+    wrapper.appendChild(input);
+    setTimeout(() => input.focus(), 50);
+
+    const commit = () => {
+      const text = input.value.trim();
+      if (text) {
+        drawState.strokes.push({ tool: 'text', color: drawState.color, size: Math.max(drawState.size * 4, 14), x, y, text });
+        redrawCanvas();
+      }
+      input.remove();
+    };
+
+    input.addEventListener('blur', commit);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+      if (e.key === 'Escape') { input.value = ''; input.blur(); }
+    });
+  }
+
+  function redrawCanvas() {
+    const ctx = drawState.ctx;
+    ctx.clearRect(0, 0, drawState.width, drawState.height);
+    drawState.strokes.forEach(drawStroke);
+  }
+
+  function drawStroke(stroke) {
+    const ctx = drawState.ctx;
+    ctx.save();
+    ctx.strokeStyle = stroke.color; ctx.fillStyle = stroke.color;
+    ctx.lineWidth = stroke.size; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+
+    if (stroke.tool === 'pen' || stroke.tool === 'eraser') {
+      if (stroke.tool === 'eraser') { ctx.globalCompositeOperation = 'destination-out'; ctx.strokeStyle = 'rgba(0,0,0,1)'; ctx.lineWidth = stroke.size * 2; }
+      ctx.beginPath();
+      stroke.points.forEach((p, i) => { if (i === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y); });
+      ctx.stroke();
+    } else if (stroke.tool === 'line') {
+      ctx.beginPath(); ctx.moveTo(stroke.start.x, stroke.start.y); ctx.lineTo(stroke.end.x, stroke.end.y); ctx.stroke();
+    } else if (stroke.tool === 'rect') {
+      ctx.strokeRect(stroke.start.x, stroke.start.y, stroke.end.x - stroke.start.x, stroke.end.y - stroke.start.y);
+    } else if (stroke.tool === 'circle') {
+      const cx = (stroke.start.x + stroke.end.x) / 2; const cy = (stroke.start.y + stroke.end.y) / 2;
+      const rx = Math.abs(stroke.end.x - stroke.start.x) / 2; const ry = Math.abs(stroke.end.y - stroke.start.y) / 2;
+      ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); ctx.stroke();
+    } else if (stroke.tool === 'arrow') {
+      const { start, end } = stroke; const dx = end.x - start.x; const dy = end.y - start.y;
+      const len = Math.hypot(dx, dy); const head = Math.min(12 + stroke.size * 2, len / 2); const angle = Math.atan2(dy, dx);
+      ctx.beginPath(); ctx.moveTo(start.x, start.y); ctx.lineTo(end.x, end.y); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(end.x, end.y);
+      ctx.lineTo(end.x - head * Math.cos(angle - Math.PI / 6), end.y - head * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(end.x - head * Math.cos(angle + Math.PI / 6), end.y - head * Math.sin(angle + Math.PI / 6));
+      ctx.closePath(); ctx.fill();
+    } else if (stroke.tool === 'text') {
+      ctx.font = `${stroke.size}px 'Inter Tight', sans-serif`; ctx.textBaseline = 'middle'; ctx.fillText(stroke.text, stroke.x, stroke.y);
+    }
+    ctx.restore();
+  }
+
+  window.setTool = function(tool) {
+    drawState.tool = tool;
+    document.querySelectorAll('.tool-btn[data-tool]').forEach(b => b.classList.toggle('active', b.dataset.tool === tool));
+    drawState.canvas.style.cursor = tool === 'text' ? 'text' : 'crosshair';
+  }
+
+  window.setColor = function(color, el) {
+    drawState.color = color;
+    document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  window.undoDraw = function() { drawState.strokes.pop(); redrawCanvas(); }
+  
+  window.clearCanvas = function() { 
+    if (!drawState.strokes.length) return; 
+    showConfirm('Clear the whole canvas?', () => {
+      drawState.strokes = []; 
+      redrawCanvas(); 
+    });
+  }
+
+  window.newDrawing = function() {
+    currentDrawingId = null; drawState.strokes = [];
+    document.getElementById('draw-title-input').value = '';
+    populateDrawSourceSelect(); document.getElementById('draw-source-select').value = '';
+    currentTab = 'draw'; showView('draw-editor-view'); setTimeout(() => { initCanvas(); }, 50);
+  }
+
+  window.newDrawingForSource = function() {
+    currentDrawingId = null; drawState.strokes = [];
+    document.getElementById('draw-title-input').value = '';
+    populateDrawSourceSelect(); document.getElementById('draw-source-select').value = currentSourceId || '';
+    currentTab = 'draw';
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('draw-panel').classList.add('active');
+    document.querySelector('.tab-btn[data-tab="draw"]').classList.add('active');
+    showView('draw-editor-view'); setTimeout(() => { initCanvas(); }, 50);
+  }
+
+  function populateDrawSourceSelect() {
+    const select = document.getElementById('draw-source-select');
+    const sources = load(STORE.sources);
+    select.innerHTML = '<option value="">No source (standalone)</option>' +
+      sources.map(s => `<option value="${s.id}">${escapeHTML(s.title)}</option>`).join('');
+  }
+
+  window.openDrawing = function(id) {
+    const drawing = load(STORE.drawings).find(d => d.id === id);
+    if (!drawing) return;
+    currentDrawingId = id; drawState.strokes = drawing.strokes || [];
+    document.getElementById('draw-title-input').value = drawing.title || '';
+    populateDrawSourceSelect(); document.getElementById('draw-source-select').value = drawing.sourceId || '';
+    showView('draw-editor-view'); setTimeout(() => { initCanvas(); redrawCanvas(); }, 50);
+  }
+
+  window.exitDrawEditor = function() { showView('draw-list-view'); renderDrawings(); }
+
+  window.saveDrawing = function() {
+    const title = document.getElementById('draw-title-input').value.trim() || 'Untitled';
+    const sourceId = document.getElementById('draw-source-select').value || null;
+    const thumb = createThumb();
+
+    const drawings = load(STORE.drawings);
+    if (currentDrawingId) {
+      const d = drawings.find(x => x.id === currentDrawingId);
+      if (d) { d.title = title; d.sourceId = sourceId ? parseInt(sourceId) : null; d.strokes = drawState.strokes; d.thumb = thumb; d.modified = new Date().toISOString(); }
+    } else {
+      currentDrawingId = Date.now();
+      drawings.unshift({ id: currentDrawingId, title, sourceId: sourceId ? parseInt(sourceId) : null, strokes: drawState.strokes, thumb, date: new Date().toISOString() });
+    }
+    save(STORE.drawings, drawings); toast('Saved');
+  }
+
+  function createThumb() {
+    const canvas = document.createElement('canvas'); const w = 300, h = 200;
+    canvas.width = w; canvas.height = h; const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#fdfcf7'; ctx.fillRect(0, 0, w, h);
+    if (!drawState.width || !drawState.height) return canvas.toDataURL('image/png', 0.5);
+    const scale = Math.min(w / drawState.width, h / drawState.height); ctx.scale(scale, scale);
+    const origCtx = drawState.ctx; drawState.ctx = ctx; drawState.strokes.forEach(drawStroke); drawState.ctx = origCtx;
+    return canvas.toDataURL('image/png', 0.5);
+  }
+
+  window.exportDrawing = function() {
+    const title = document.getElementById('draw-title-input').value.trim() || 'drawing';
+    const canvas = document.createElement('canvas');
+    const w = drawState.width || 800; const h = drawState.height || 600;
+    canvas.width = w * 2; canvas.height = h * 2; const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#fdfcf7'; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.scale(2, 2);
+    const origCtx = drawState.ctx; drawState.ctx = ctx; drawState.strokes.forEach(drawStroke); drawState.ctx = origCtx;
+
+    canvas.toBlob(blob => {
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+      a.download = `${title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.png`; a.click();
+      URL.revokeObjectURL(a.href); toast('Exported');
+    });
+  }
+
+  window.deleteDrawing = function(id, e) {
+    e.stopPropagation(); 
+    showConfirm('Delete this drawing?', () => {
+      const drawings = load(STORE.drawings).filter(d => d.id !== id);
+      save(STORE.drawings, drawings); 
+      renderDrawings(); 
+      toast('Deleted');
+    });
+  }
+
+  window.renderDrawings = function() {
+    const grid = document.getElementById('draw-grid');
+    const drawings = load(STORE.drawings); const sources = load(STORE.sources);
+    const addCard = `<div class="draw-card add-draw" onclick="newDrawing()"><div class="plus">+</div><div class="add-label">New Drawing</div></div>`;
+    if (!drawings.length) { grid.innerHTML = addCard; return; }
+
+    grid.innerHTML = addCard + drawings.map(d => {
+      const src = d.sourceId ? sources.find(s => s.id === d.sourceId) : null;
+      const date = new Date(d.modified || d.date);
+      return `
+        <div class="draw-card" onclick="openDrawing(${d.id})">
+          <button class="delete-small" onclick="deleteDrawing(${d.id}, event)" title="Delete">✕</button>
+          <div class="draw-thumb">${d.thumb ? `<img src="${d.thumb}" alt="" />` : '<span style="color:var(--ink-faint); font-size:12px;">empty</span>'}</div>
+          <div class="title">${escapeHTML(d.title || 'Untitled')}</div>
+          <div class="subtitle">${date.toLocaleDateString()}</div>
+          ${src ? `<div class="tag">${escapeHTML(src.title)}</div>` : ''}
+        </div>
+      `;
+    }).join('');
+  }
+
+  document.getElementById('size-slider').addEventListener('input', (e) => { drawState.size = parseInt(e.target.value); });
+
+  // ============ TASKS ============
+  window.addTask = function() {
+    const input = document.getElementById('task-input');
+    const time = document.getElementById('task-time');
+    const text = input.value.trim();
+    if (!text) return toast('What do you want to do?');
+    const tasks = load(STORE.tasks);
+    tasks.push({ id: Date.now(), text, due: time.value || null, done: false, created: new Date().toISOString() });
+    save(STORE.tasks, tasks);
+    input.value = ''; time.value = '';
+    renderTasks();
+    toast('Task added');
+  }
+
+  window.toggleTask = function(id) {
+    const tasks = load(STORE.tasks);
+    const t = tasks.find(x => x.id === id);
+    if (t) { t.done = !t.done; save(STORE.tasks, tasks); renderTasks(); }
+  }
+
+  window.deleteTask = function(id) {
+    save(STORE.tasks, load(STORE.tasks).filter(t => t.id !== id));
+    renderTasks();
+    toast('Deleted');
+  }
+
+  window.renderTasks = function() {
+    const list = document.getElementById('tasks-list');
+    const tasks = load(STORE.tasks).sort((a, b) => {
+      if (a.done !== b.done) return a.done ? 1 : -1;
+      if (!a.due && !b.due) return b.id - a.id;
+      if (!a.due) return 1;
+      if (!b.due) return -1;
+      return new Date(a.due) - new Date(b.due);
+    });
+    if (!tasks.length) { list.innerHTML = '<div class="empty">Nothing planned. Breathe.</div>'; return; }
+    const now = new Date();
+    list.innerHTML = tasks.map(t => {
+      let cls = 'task-item';
+      if (t.done) cls += ' done';
+      else if (t.due) {
+        const due = new Date(t.due);
+        if (due < now) cls += ' overdue';
+        else if ((due - now) < 24 * 3600000) cls += ' upcoming';
+      }
+      return `
+        <div class="item ${cls}">
+          <div class="item-actions"><button class="icon-btn" onclick="deleteTask(${t.id})">✕</button></div>
+          <div class="item-text"><span class="checkbox ${t.done ? 'checked' : ''}" onclick="toggleTask(${t.id})">${t.done ? '✓' : ''}</span>${escapeHTML(t.text)}</div>
+          <div class="item-meta">${t.due ? `<span class="task-time">◷ ${formatDueDate(t.due)}</span>` : '<span>no time set</span>'}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // ============ TRANSLATOR ============
+  window.swapLanguages = function() {
+    const srcSelect = document.getElementById('source-lang');
+    const tgtSelect = document.getElementById('target-lang');
+    const temp = srcSelect.value;
+    srcSelect.value = tgtSelect.value;
+    tgtSelect.value = temp;
+
+    const input = document.getElementById('source-text');
+    const output = document.getElementById('trans-output');
+    
+    if (output.dataset.translation && !output.classList.contains('empty-state')) {
+      input.value = output.dataset.translation;
+      output.textContent = 'Translation will appear here';
+      output.classList.add('empty-state');
+      delete output.dataset.translation;
+    }
+  }
+
+  window.doTranslate = async function() {
+    const source = document.getElementById('source-text').value.trim();
+    const output = document.getElementById('trans-output');
+    const sourceLang = document.getElementById('source-lang').value;
+    const targetLang = document.getElementById('target-lang').value;
+    if (!source) return toast('Type a word first');
+
+    output.classList.remove('empty-state');
+    output.classList.add('loading');
+    output.textContent = 'Translating…';
+    try {
+      const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(source)}&langpair=${sourceLang}|${targetLang}`);
+      const data = await res.json();
+      if (data.responseData) {
+        output.classList.remove('loading');
+        output.textContent = data.responseData.translatedText;
+        output.dataset.translation = data.responseData.translatedText;
+        output.dataset.source = source;
+        output.dataset.lang = targetLang;
+        output.dataset.sourceLang = sourceLang;
+      } else throw new Error();
+    } catch {
+      output.classList.remove('loading');
+      output.classList.add('empty-state');
+      output.textContent = 'Translation unavailable — check your connection';
+    }
+  }
+
+  window.saveVocab = function() {
+    const output = document.getElementById('trans-output');
+    const { source, translation, lang, sourceLang } = output.dataset;
+    if (!source || !translation) return toast('Translate something first');
+    const vocab = load(STORE.vocab);
+    
+    const srcLangToSave = sourceLang || 'en';
+
+    if (vocab.some(v => v.source === source && v.lang === lang && v.sourceLang === srcLangToSave)) return toast('Already saved');
+    vocab.unshift({ id: Date.now(), source, translation, lang, sourceLang: srcLangToSave, date: new Date().toISOString() });
+    save(STORE.vocab, vocab);
+    renderVocab();
+    toast('Word saved');
+  }
+
+  window.deleteVocab = function(id) { save(STORE.vocab, load(STORE.vocab).filter(v => v.id !== id)); renderVocab(); toast('Deleted'); }
+
+  let currentVocabFilter = 'all';
+  window.filterVocab = function(lang, btn) {
+    currentVocabFilter = lang;
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active'); renderVocab();
+  }
+
+  window.renderVocab = function() {
+    const rows = document.getElementById('vocab-rows');
+    let vocab = load(STORE.vocab);
+    if (currentVocabFilter !== 'all') {
+      vocab = vocab.filter(v => v.lang === currentVocabFilter || (v.sourceLang || 'en') === currentVocabFilter);
+    }
+    if (!vocab.length) {
+      rows.innerHTML = '<div class="vocab-row"><div style="grid-column:1/-1; text-align:center; color:var(--ink-faint); font-style:italic; padding:20px 0;">No words yet</div></div>';
+      return;
+    }
+    rows.innerHTML = vocab.map(v => `
+      <div class="vocab-row">
+        <div class="vocab-source">${escapeHTML(v.source)}<span class="vocab-lang-tag">${(v.sourceLang || 'en').toUpperCase()}→${v.lang.toUpperCase()}</span></div>
+        <div class="vocab-target">${escapeHTML(v.translation)}</div>
+        <button class="icon-btn" onclick="deleteVocab(${v.id})">✕</button>
+      </div>
+    `).join('');
+  }
+
+  window.exportVocab = function() {
+    const vocab = load(STORE.vocab);
+    if (!vocab.length) return toast('Nothing to export');
+    const header = 'Word,Translation,Language Pair,Date Saved\n';
+    const rows = vocab.map(v => [v.source, v.translation, `${(v.sourceLang || 'en').toUpperCase()}-${v.lang.toUpperCase()}`, new Date(v.date).toLocaleDateString()]
+      .map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const csv = '\ufeff' + header + rows;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], {type: 'text/csv;charset=utf-8'}));
+    a.download = `vocabulary-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast('Spreadsheet downloaded');
+  }
+
+  window.clearVocab = function() { 
+    showConfirm('Clear all saved words?', () => {
+      save(STORE.vocab, []); 
+      renderVocab(); 
+      toast('Cleared'); 
+    });
+  }
+
+  // A global function to re-render everything if cloud data arrives
+  window.renderAllViews = function() {
+    renderCategories();
+    renderSources();
+    renderInbox();
+    renderTasks();
+    renderVocab();
+    if(currentTab === 'draw') renderDrawings();
+  }
+
+  // ============ INIT ============
+  window.renderAllViews();
+  updateHeader();
+
+  setInterval(renderTasks, 60000);
+
+  document.getElementById('source-text').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); window.doTranslate(); }
+  });
+</script>
+</body>
+</html>
