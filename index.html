@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,400&family=JetBrains+Mono:wght@400;500&family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
   :root {
     --bg: #f5f1e8;
@@ -1605,69 +1606,9 @@
     <!-- View: Library (quick capture + inbox + books) -->
     <div class="view active" id="sources-view">
 
-      <!-- Quick capture (Rich Text Editor) -->
+      <!-- Quick capture -->
       <div class="quick-capture">
-        <div class="rte-wrapper">
-          <div class="rte-toolbar">
-            <button class="rte-btn" onclick="formatText('bold')" title="Bold"><b>B</b></button>
-            <button class="rte-btn" onclick="formatText('italic')" title="Italic"><i>I</i></button>
-            <button class="rte-btn" onclick="formatText('underline')" title="Underline"><u>U</u></button>
-            <button class="rte-btn" onclick="formatText('formatBlock', 'H3')" title="Header (Thickness)">H</button>
-            <button class="rte-btn" onclick="formatText('formatBlock', 'BLOCKQUOTE')" title="Quote">”</button>
-            
-            <!-- Color Picker -->
-            <button class="rte-btn" onclick="toggleCustomPopover('qc-color', event)" title="Text Color">🎨</button>
-            <div id="qc-color" class="emoji-popover color-popover">
-              <button class="color-btn" style="background:var(--ink)" onclick="formatText('foreColor', '#1a1a1a')"></button>
-              <button class="color-btn" style="background:var(--accent)" onclick="formatText('foreColor', '#d94d2a')"></button>
-              <button class="color-btn" style="background:var(--gold)" onclick="formatText('foreColor', '#c49a4a')"></button>
-              <button class="color-btn" style="background:var(--green)" onclick="formatText('foreColor', '#5a7a4a')"></button>
-              <button class="color-btn" style="background:var(--blue)" onclick="formatText('foreColor', '#3a6a8a')"></button>
-            </div>
-
-            <!-- Size Picker -->
-            <button class="rte-btn" onclick="toggleCustomPopover('qc-size', event)" title="Text Size">T↕</button>
-            <div id="qc-size" class="emoji-popover size-popover">
-              <button class="size-btn" style="font-size:12px" onclick="formatText('fontSize', '2')">Small</button>
-              <button class="size-btn" style="font-size:16px" onclick="formatText('fontSize', '3')">Medium</button>
-              <button class="size-btn" style="font-size:20px" onclick="formatText('fontSize', '5')">Large</button>
-            </div>
-
-            <!-- Symbols -->
-            <button class="rte-btn" onclick="toggleCustomPopover('qc-symbol', event)" title="Symbols">Ω</button>
-            <div id="qc-symbol" class="emoji-popover">
-              <button class="emoji-cell" onclick="insertEmoji('→')">→</button>
-              <button class="emoji-cell" onclick="insertEmoji('←')">←</button>
-              <button class="emoji-cell" onclick="insertEmoji('↑')">↑</button>
-              <button class="emoji-cell" onclick="insertEmoji('↓')">↓</button>
-              <button class="emoji-cell" onclick="insertEmoji('•')">•</button>
-              <button class="emoji-cell" onclick="insertEmoji('★')">★</button>
-              <button class="emoji-cell" onclick="insertEmoji('✓')">✓</button>
-              <button class="emoji-cell" onclick="insertEmoji('✕')">✕</button>
-              <button class="emoji-cell" onclick="insertEmoji('💡')">💡</button>
-              <button class="emoji-cell" onclick="insertEmoji('📌')">📌</button>
-              <button class="emoji-cell" onclick="insertEmoji('!')">!</button>
-              <button class="emoji-cell" onclick="insertEmoji('?')">?</button>
-            </div>
-
-            <button class="rte-btn" onclick="toggleCustomPopover('qc-emoji', event)" title="Emoji">😀</button>
-            <div id="qc-emoji" class="emoji-popover">
-              <button class="emoji-cell" onclick="insertEmoji('😀')">😀</button>
-              <button class="emoji-cell" onclick="insertEmoji('😂')">😂</button>
-              <button class="emoji-cell" onclick="insertEmoji('🥰')">🥰</button>
-              <button class="emoji-cell" onclick="insertEmoji('😎')">😎</button>
-              <button class="emoji-cell" onclick="insertEmoji('🤔')">🤔</button>
-              <button class="emoji-cell" onclick="insertEmoji('💡')">💡</button>
-              <button class="emoji-cell" onclick="insertEmoji('🚀')">🚀</button>
-              <button class="emoji-cell" onclick="insertEmoji('✨')">✨</button>
-              <button class="emoji-cell" onclick="insertEmoji('🔥')">🔥</button>
-              <button class="emoji-cell" onclick="insertEmoji('📌')">📌</button>
-              <button class="emoji-cell" onclick="insertEmoji('👍')">👍</button>
-              <button class="emoji-cell" onclick="insertEmoji('🎉')">🎉</button>
-            </div>
-          </div>
-          <div id="quick-note" class="rich-editor" contenteditable="true" data-placeholder="Quick idea from what you read…"></div>
-        </div>
+        <textarea id="quick-note" placeholder="Quick idea from what you read…"></textarea>
         <div class="qc-actions">
           <span class="qc-hint">Capture now, organize later</span>
           <button class="btn btn-accent btn-small" onclick="captureQuickNote()">Save</button>
@@ -1686,10 +1627,7 @@
       <!-- Categories + books -->
       <div class="section-header">
         <span class="section-label">◉ Library</span>
-        <div style="display:flex; gap:8px;">
-          <button class="btn btn-small btn-ghost" onclick="exportNotesCsv(null)">↓ Export Notes</button>
-          <button class="btn btn-small btn-outline" onclick="openBookModal(false)">+ Book</button>
-        </div>
+        <button class="btn btn-small btn-outline" onclick="openBookModal(false)">+ Book</button>
       </div>
       <div class="category-bar" id="category-bar"></div>
       <div class="book-grid" id="book-grid"></div>
@@ -1705,74 +1643,12 @@
           <button class="btn btn-accent btn-small" onclick="showView('mindmap-view'); renderMindmap();">◉ Mind Map</button>
           <button class="btn btn-outline btn-small" onclick="newDrawingForSource()">✎ Draw</button>
           <button class="btn btn-outline btn-small" onclick="openBookModal(true)">Edit</button>
-          <button class="btn btn-ghost btn-small" onclick="exportNotesCsv(currentSourceId)">↓ Export CSV</button>
           <button class="btn btn-ghost btn-small danger" onclick="deleteCurrentSource()">Delete</button>
         </div>
       </div>
 
-      <!-- Detail Note Input (Rich Text Editor) -->
       <div class="input-card">
-        <div class="rte-wrapper">
-          <div class="rte-toolbar">
-            <button class="rte-btn" onclick="formatText('bold')" title="Bold"><b>B</b></button>
-            <button class="rte-btn" onclick="formatText('italic')" title="Italic"><i>I</i></button>
-            <button class="rte-btn" onclick="formatText('underline')" title="Underline"><u>U</u></button>
-            <button class="rte-btn" onclick="formatText('formatBlock', 'H3')" title="Header (Thickness)">H</button>
-            <button class="rte-btn" onclick="formatText('formatBlock', 'BLOCKQUOTE')" title="Quote">”</button>
-            
-            <!-- Color Picker -->
-            <button class="rte-btn" onclick="toggleCustomPopover('nd-color', event)" title="Text Color">🎨</button>
-            <div id="nd-color" class="emoji-popover color-popover">
-              <button class="color-btn" style="background:var(--ink)" onclick="formatText('foreColor', '#1a1a1a')"></button>
-              <button class="color-btn" style="background:var(--accent)" onclick="formatText('foreColor', '#d94d2a')"></button>
-              <button class="color-btn" style="background:var(--gold)" onclick="formatText('foreColor', '#c49a4a')"></button>
-              <button class="color-btn" style="background:var(--green)" onclick="formatText('foreColor', '#5a7a4a')"></button>
-              <button class="color-btn" style="background:var(--blue)" onclick="formatText('foreColor', '#3a6a8a')"></button>
-            </div>
-
-            <!-- Size Picker -->
-            <button class="rte-btn" onclick="toggleCustomPopover('nd-size', event)" title="Text Size">T↕</button>
-            <div id="nd-size" class="emoji-popover size-popover">
-              <button class="size-btn" style="font-size:12px" onclick="formatText('fontSize', '2')">Small</button>
-              <button class="size-btn" style="font-size:16px" onclick="formatText('fontSize', '3')">Medium</button>
-              <button class="size-btn" style="font-size:20px" onclick="formatText('fontSize', '5')">Large</button>
-            </div>
-
-            <!-- Symbols -->
-            <button class="rte-btn" onclick="toggleCustomPopover('nd-symbol', event)" title="Symbols">Ω</button>
-            <div id="nd-symbol" class="emoji-popover">
-              <button class="emoji-cell" onclick="insertEmoji('→')">→</button>
-              <button class="emoji-cell" onclick="insertEmoji('←')">←</button>
-              <button class="emoji-cell" onclick="insertEmoji('↑')">↑</button>
-              <button class="emoji-cell" onclick="insertEmoji('↓')">↓</button>
-              <button class="emoji-cell" onclick="insertEmoji('•')">•</button>
-              <button class="emoji-cell" onclick="insertEmoji('★')">★</button>
-              <button class="emoji-cell" onclick="insertEmoji('✓')">✓</button>
-              <button class="emoji-cell" onclick="insertEmoji('✕')">✕</button>
-              <button class="emoji-cell" onclick="insertEmoji('💡')">💡</button>
-              <button class="emoji-cell" onclick="insertEmoji('📌')">📌</button>
-              <button class="emoji-cell" onclick="insertEmoji('!')">!</button>
-              <button class="emoji-cell" onclick="insertEmoji('?')">?</button>
-            </div>
-
-            <button class="rte-btn" onclick="toggleCustomPopover('nd-emoji', event)" title="Emoji">😀</button>
-            <div id="nd-emoji" class="emoji-popover">
-              <button class="emoji-cell" onclick="insertEmoji('😀')">😀</button>
-              <button class="emoji-cell" onclick="insertEmoji('😂')">😂</button>
-              <button class="emoji-cell" onclick="insertEmoji('🥰')">🥰</button>
-              <button class="emoji-cell" onclick="insertEmoji('😎')">😎</button>
-              <button class="emoji-cell" onclick="insertEmoji('🤔')">🤔</button>
-              <button class="emoji-cell" onclick="insertEmoji('💡')">💡</button>
-              <button class="emoji-cell" onclick="insertEmoji('🚀')">🚀</button>
-              <button class="emoji-cell" onclick="insertEmoji('✨')">✨</button>
-              <button class="emoji-cell" onclick="insertEmoji('🔥')">🔥</button>
-              <button class="emoji-cell" onclick="insertEmoji('📌')">📌</button>
-              <button class="emoji-cell" onclick="insertEmoji('👍')">👍</button>
-              <button class="emoji-cell" onclick="insertEmoji('🎉')">🎉</button>
-            </div>
-          </div>
-          <div id="note-input" class="rich-editor" contenteditable="true" data-placeholder="An idea from this source…"></div>
-        </div>
+        <textarea id="note-input" placeholder="An idea from this source…"></textarea>
         <div class="input-row">
           <button class="btn btn-accent" onclick="addNote()" style="margin-left: auto;">Add Note</button>
         </div>
@@ -1878,26 +1754,17 @@
 
     <div class="translator-box">
       <div class="lang-bar">
-        <div class="lang-select">
-          <select id="source-lang">
-            <option value="en">EN — English</option>
-            <option value="ja">JA — Japanese</option>
-            <option value="th">TH — Thai</option>
-            <option value="de">DE — German</option>
-          </select>
-        </div>
-        <button class="icon-btn swap-btn" onclick="swapLanguages()" title="Swap languages">⇄</button>
+        <div class="lang-select"><span>EN</span></div>
+        <span class="arrow">→</span>
         <div class="lang-select">
           <select id="target-lang">
-            <option value="th">TH — Thai</option>
-            <option value="ja">JA — Japanese</option>
-            <option value="en">EN — English</option>
             <option value="de">DE — German</option>
+            <option value="th">TH — Thai</option>
           </select>
         </div>
       </div>
       <div class="trans-input">
-        <textarea id="source-text" placeholder="Type a word or phrase…"></textarea>
+        <textarea id="source-text" placeholder="Type a word or phrase in English…"></textarea>
       </div>
       <div class="trans-output empty-state" id="trans-output">Translation will appear here</div>
       <div class="trans-actions">
@@ -1908,14 +1775,13 @@
 
     <div class="vocab-filter">
       <button class="filter-chip active" data-filter="all" onclick="filterVocab('all', this)">All</button>
-      <button class="filter-chip" data-filter="en" onclick="filterVocab('en', this)">English</button>
-      <button class="filter-chip" data-filter="ja" onclick="filterVocab('ja', this)">Japanese</button>
+      <button class="filter-chip" data-filter="de" onclick="filterVocab('de', this)">German</button>
       <button class="filter-chip" data-filter="th" onclick="filterVocab('th', this)">Thai</button>
     </div>
 
     <div class="vocab-table" id="vocab-table">
       <div class="vocab-row header">
-        <div>Word</div><div>Translation</div><div></div>
+        <div>English</div><div>Translation</div><div></div>
       </div>
       <div id="vocab-rows"></div>
     </div>
@@ -1971,17 +1837,6 @@
   </div>
 </div>
 
-<!-- MODAL: Custom Confirm -->
-<div class="modal-backdrop" id="confirm-modal" style="z-index: 500;">
-  <div class="modal" style="max-width: 400px; text-align: center; padding-bottom: 30px;">
-    <h3 id="confirm-message" style="font-size: 16px; margin-bottom: 24px; font-family: 'Inter Tight', sans-serif; font-weight: 500; line-height: 1.5;">Are you sure?</h3>
-    <div class="modal-actions" style="margin-top: 0;">
-      <button class="btn btn-outline" onclick="closeConfirmModal()">Cancel</button>
-      <button class="btn btn-accent" id="confirm-btn">Confirm</button>
-    </div>
-  </div>
-</div>
-
 <!-- Bottom Nav -->
 <nav class="tab-nav">
   <button class="tab-btn active" data-tab="notes" onclick="switchTab('notes')">
@@ -2000,120 +1855,31 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- FIREBASE CLOUD SETUP -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-  import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-  import { getFirestore, doc, setDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-  const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-  const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-
-  if (firebaseConfig) {
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    // Global memory cache to override standard local storage
-    window.cloudStore = {}; 
-
-    const initAuth = async () => {
-      try {
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          await signInWithCustomToken(auth, __initial_auth_token);
-        } else {
-          await signInAnonymously(auth);
-        }
-      } catch (err) {
-        console.error("Auth error", err);
-        document.getElementById('cloud-loader').style.display = 'none';
-      }
-    };
-
-    initAuth();
-
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        window.currentUserId = user.uid;
-        document.getElementById('cloud-status').style.display = 'flex';
-        
-        const userStorageRef = collection(db, 'artifacts', appId, 'users', user.uid, 'appData');
-        
-        onSnapshot(userStorageRef, (snapshot) => {
-          snapshot.forEach(docSnap => {
-            const key = docSnap.id;
-            const data = JSON.parse(docSnap.data().payload);
-            window.cloudStore[key] = data; // Keep in memory
-            localStorage.setItem(key, docSnap.data().payload); // Keep local fallback
-          });
-          
-          document.getElementById('cloud-loader').style.display = 'none';
-          
-          // Re-render UI after syncing cloud data
-          if(window.renderAllViews) window.renderAllViews();
-          
-        }, (error) => {
-          console.error("Cloud sync error:", error);
-          document.getElementById('cloud-loader').style.display = 'none';
-        });
-
-        // Expose a global function to push data to the cloud
-        window.saveToCloud = async (key, data) => {
-          try {
-            const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'appData', key);
-            await setDoc(docRef, { payload: JSON.stringify(data) });
-          } catch (e) {
-            console.error("Failed to push to cloud", e);
-            if(window.toast) window.toast('Saved locally (Cloud push failed)');
-          }
-        };
-      } else {
-        document.getElementById('cloud-loader').style.display = 'none';
-      }
-    });
-  } else {
-    // If not running in a connected environment, just hide loader and act normal
-    document.getElementById('cloud-loader').style.display = 'none';
-  }
-</script>
-
 <script>
-  // ============ STORAGE (Hybrid Cloud / Local) ============
+  // ============ STORAGE ============
   const STORE = {
     sources: 'thinkbook_sources',
-    notes: 'thinkbook_notes',         
+    notes: 'thinkbook_notes',         // notes with {id, sourceId|null, text, date}
     categories: 'thinkbook_categories',
     tasks: 'thinkbook_tasks',
     vocab: 'thinkbook_vocab',
     mindmap: 'thinkbook_mindmap',
-    drawings: 'thinkbook_drawings'    
+    drawings: 'thinkbook_drawings'    // {id, title, sourceId|null, svg, thumb, date}
   };
 
   const DEFAULT_CATEGORIES = ['Economics', 'Psychology', 'Money', 'Business', 'Other'];
 
   function load(key, fallback = []) {
-    // 1. Try fetching from active cloud memory cache first
-    if (window.cloudStore && window.cloudStore[key]) {
-      return window.cloudStore[key];
-    }
-    // 2. Fallback to LocalStorage
     try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); }
     catch { return fallback; }
   }
 
   function save(key, data) {
-    // 1. Save to LocalStorage instantly for immediate UI feedback
     try {
       localStorage.setItem(key, JSON.stringify(data));
     } catch (e) {
-      toast('Local storage full — delete some drawings');
+      toast('Storage full — delete some drawings');
     }
-    
-    // 2. Update cloud memory cache
-    if (window.cloudStore) window.cloudStore[key] = data;
-    
-    // 3. Push quietly to Firestore Cloud
-    if (window.saveToCloud) window.saveToCloud(key, data);
   }
 
   if (!localStorage.getItem(STORE.categories)) {
@@ -2147,25 +1913,6 @@
     return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
-  function sanitizeHTML(html) {
-    if (!html) return '';
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-    const badTags = doc.querySelectorAll('script, style, iframe, object, embed, link');
-    badTags.forEach(tag => tag.remove());
-    const allNodes = doc.querySelectorAll('*');
-    allNodes.forEach(node => {
-      for (let i = node.attributes.length - 1; i >= 0; i--) {
-        const attrName = node.attributes[i].name;
-        if (attrName.startsWith('on') || 
-           (attrName === 'href' && node.getAttribute('href').toLowerCase().startsWith('javascript:'))) {
-          node.removeAttribute(attrName);
-        }
-      }
-    });
-    return doc.body.innerHTML;
-  }
-
   function formatDate(iso) {
     const d = new Date(iso);
     const now = new Date();
@@ -2189,68 +1936,15 @@
     return d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' + timeStr;
   }
 
-  // ============ RICH TEXT EDITOR (RTE) ============
-  window.formatText = function(command, value = null) {
-    document.execCommand(command, false, value);
-    const activeEditor = document.querySelector('.view.active .rich-editor');
-    if (activeEditor) activeEditor.focus();
-    document.querySelectorAll('.emoji-popover').forEach(p => p.classList.remove('active'));
-  }
-
-  window.toggleCustomPopover = function(id, event) {
-    event.stopPropagation();
-    const popover = document.getElementById(id);
-    const isActive = popover.classList.contains('active');
-    document.querySelectorAll('.emoji-popover').forEach(p => p.classList.remove('active'));
-    if (!isActive) {
-      popover.classList.add('active');
-    }
-  }
-
-  window.insertEmoji = function(emoji) {
-    const activeEditor = document.querySelector('.view.active .rich-editor');
-    if (activeEditor) {
-      activeEditor.focus();
-      document.execCommand('insertText', false, emoji);
-    }
-    document.querySelectorAll('.emoji-popover').forEach(p => p.classList.remove('active'));
-  }
-
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('.emoji-popover') && !e.target.closest('.rte-btn[title="Emoji"]') && !e.target.closest('.rte-btn[title="Text Color"]') && !e.target.closest('.rte-btn[title="Text Size"]') && !e.target.closest('.rte-btn[title="Symbols"]')) {
-      document.querySelectorAll('.emoji-popover').forEach(p => p.classList.remove('active'));
-    }
-  });
-
-
   // ============ MODALS ============
-  window.openModal = function(id) { document.getElementById(id).classList.add('active'); }
-  window.closeModal = function(id) { document.getElementById(id).classList.remove('active'); }
-  window.closeModalIfBackdrop = function(e, id) {
+  function openModal(id) { document.getElementById(id).classList.add('active'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+  function closeModalIfBackdrop(e, id) {
     if (e.target.id === id) closeModal(id);
   }
 
-  // ============ CUSTOM CONFIRM ============
-  let confirmCallback = null;
-
-  window.showConfirm = function(message, callback) {
-    document.getElementById('confirm-message').textContent = message;
-    confirmCallback = callback;
-    document.getElementById('confirm-modal').classList.add('active');
-  }
-
-  window.closeConfirmModal = function() {
-    document.getElementById('confirm-modal').classList.remove('active');
-    confirmCallback = null;
-  }
-
-  document.getElementById('confirm-btn').addEventListener('click', () => {
-    if (confirmCallback) confirmCallback();
-    closeConfirmModal();
-  });
-
   // ============ HEADER ============
-  window.updateHeader = function() {
+  function updateHeader() {
     const left = document.getElementById('header-content');
     const action = document.getElementById('header-action');
     action.style.display = 'none';
@@ -2270,10 +1964,10 @@
     }
   }
 
-  window.headerAction = function() {}
+  function headerAction() {}
 
   // ============ TABS/VIEWS ============
-  window.switchTab = function(tab) {
+  function switchTab(tab) {
     currentTab = tab;
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -2295,7 +1989,7 @@
     updateHeader();
   }
 
-  window.showView = function(viewId) {
+  function showView(viewId) {
     currentView = viewId;
     const panel = currentTab === 'draw' ? 'draw-panel' : 'notes-panel';
     document.querySelectorAll(`#${panel} .view`).forEach(v => v.classList.remove('active'));
@@ -2308,45 +2002,23 @@
   }
 
   // ============ CATEGORIES ============
-  window.renderCategories = function() {
+  function renderCategories() {
     const bar = document.getElementById('category-bar');
     const cats = load(STORE.categories, DEFAULT_CATEGORIES);
-    
     const allChip = `<button class="cat-chip ${currentCategoryFilter === 'all' ? 'active' : ''}" onclick="setCategoryFilter('all')">All</button>`;
-    
     const catChips = cats.map(c =>
-      `<div class="cat-chip ${currentCategoryFilter === c ? 'active' : ''}" style="display:inline-flex; align-items:center; gap:8px; padding: 4px 12px;">
-         <span style="cursor:pointer;" onclick="setCategoryFilter('${escapeAttr(c)}')">${escapeHTML(c)}</span>
-         <span style="cursor:pointer; opacity:0.5; font-size:14px; font-weight:bold; line-height:1;" onclick="deleteCategory('${escapeAttr(c)}', event)" title="Delete category">✕</span>
-       </div>`
+      `<button class="cat-chip ${currentCategoryFilter === c ? 'active' : ''}" onclick="setCategoryFilter('${escapeAttr(c)}')">${escapeHTML(c)}</button>`
     ).join('');
-    
     bar.innerHTML = allChip + catChips + `<button class="cat-chip add-cat" onclick="openModal('cat-modal')">+ Add</button>`;
   }
 
-  window.setCategoryFilter = function(cat) {
+  function setCategoryFilter(cat) {
     currentCategoryFilter = cat;
     renderCategories();
     renderSources();
   }
 
-  window.deleteCategory = function(cat, e) {
-    e.stopPropagation();
-    showConfirm(`Delete category "${cat}"? Notes will NOT be deleted.`, () => {
-      let cats = load(STORE.categories, DEFAULT_CATEGORIES);
-      cats = cats.filter(c => c !== cat);
-      save(STORE.categories, cats);
-      
-      if (currentCategoryFilter === cat) {
-        currentCategoryFilter = 'all';
-      }
-      
-      renderCategories();
-      toast('Category deleted');
-    });
-  }
-
-  window.saveCategory = function() {
+  function saveCategory() {
     const input = document.getElementById('cat-name-input');
     const name = input.value.trim();
     if (!name) return toast('Name the category');
@@ -2361,28 +2033,26 @@
   }
 
   // ============ QUICK CAPTURE & INBOX ============
-  window.captureQuickNote = function() {
+  function captureQuickNote() {
     const input = document.getElementById('quick-note');
-    const text = input.innerHTML.trim();
-    
-    if (!text || text === '<br>') return toast('Write something first');
+    const text = input.value.trim();
+    if (!text) return toast('Write something first');
 
     const notes = load(STORE.notes);
     notes.unshift({
       id: Date.now(),
       sourceId: null,
-      text: sanitizeHTML(text),
+      text,
       date: new Date().toISOString()
     });
     save(STORE.notes, notes);
-    
-    input.innerHTML = '';
+    input.value = '';
     renderInbox();
-    renderSources(); 
+    renderSources(); // update note counts in case filter changes
     toast('Captured. Drag it onto a book when you\'re ready.');
   }
 
-  window.renderInbox = function() {
+  function renderInbox() {
     const inboxSection = document.getElementById('inbox-section');
     const list = document.getElementById('inbox-list');
     const countEl = document.getElementById('inbox-count');
@@ -2400,11 +2070,12 @@
       <div class="inbox-note" data-note-id="${n.id}">
         <span class="drag-handle">⋮⋮</span>
         <button class="delete" onclick="event.stopPropagation(); deleteNote(${n.id})">✕</button>
-        <div class="note-body">${n.text}</div>
+        <div class="note-body">${escapeHTML(n.text)}</div>
         <div class="note-time">${formatDate(n.date)}</div>
       </div>
     `).join('');
 
+    // Attach drag listeners
     list.querySelectorAll('.inbox-note').forEach(el => {
       setupDragForNote(el);
     });
@@ -2433,11 +2104,7 @@
       };
 
       const ghost = document.getElementById('drag-ghost');
-      const tmp = document.createElement('div');
-      tmp.innerHTML = note.text;
-      const plainText = tmp.textContent || tmp.innerText || "";
-      ghost.textContent = plainText.slice(0, 80) + (plainText.length > 80 ? '…' : '');
-      
+      ghost.textContent = note.text.slice(0, 80) + (note.text.length > 80 ? '…' : '');
       positionGhost(pointer.clientX, pointer.clientY);
     }
 
@@ -2519,7 +2186,7 @@
   }
 
   // ============ SOURCES ============
-  window.openBookModal = function(isEdit) {
+  function openBookModal(isEdit) {
     editingBookId = null;
     const title = document.getElementById('book-modal-title');
     const catSelect = document.getElementById('book-category-input');
@@ -2547,7 +2214,7 @@
     setTimeout(() => titleInput.focus(), 100);
   }
 
-  window.saveBook = function() {
+  function saveBook() {
     const title = document.getElementById('book-title-input').value.trim();
     const author = document.getElementById('book-author-input').value.trim();
     const category = document.getElementById('book-category-input').value;
@@ -2573,13 +2240,13 @@
     renderSources();
   }
 
-  window.openSource = function(id) {
+  function openSource(id) {
     currentSourceId = id;
     showView('source-view');
     renderSourceDetail();
   }
 
-  window.renderSourceDetail = function() {
+  function renderSourceDetail() {
     const src = load(STORE.sources).find(s => s.id === currentSourceId);
     if (!src) { showView('sources-view'); return; }
     document.getElementById('source-cat').textContent = src.category;
@@ -2588,29 +2255,30 @@
     renderNotes();
   }
 
-  window.deleteCurrentSource = function() {
+  function deleteCurrentSource() {
     if (!currentSourceId) return;
-    showConfirm('Delete this source and all its notes? (Drawings will be kept as standalone.)', () => {
-      const sources = load(STORE.sources).filter(s => s.id !== currentSourceId);
-      const notes = load(STORE.notes).filter(n => n.sourceId !== currentSourceId);
-      save(STORE.sources, sources);
-      save(STORE.notes, notes);
+    if (!confirm('Delete this source and all its notes? (Drawings will be kept as standalone.)')) return;
 
-      const drawings = load(STORE.drawings);
-      drawings.forEach(d => { if (d.sourceId === currentSourceId) d.sourceId = null; });
-      save(STORE.drawings, drawings);
+    const sources = load(STORE.sources).filter(s => s.id !== currentSourceId);
+    const notes = load(STORE.notes).filter(n => n.sourceId !== currentSourceId);
+    save(STORE.sources, sources);
+    save(STORE.notes, notes);
 
-      const mm = load(STORE.mindmap, {});
-      delete mm[currentSourceId];
-      save(STORE.mindmap, mm);
+    // Detach drawings instead of deleting
+    const drawings = load(STORE.drawings);
+    drawings.forEach(d => { if (d.sourceId === currentSourceId) d.sourceId = null; });
+    save(STORE.drawings, drawings);
 
-      currentSourceId = null;
-      showView('sources-view');
-      toast('Source deleted');
-    });
+    const mm = load(STORE.mindmap, {});
+    delete mm[currentSourceId];
+    save(STORE.mindmap, mm);
+
+    currentSourceId = null;
+    showView('sources-view');
+    toast('Source deleted');
   }
 
-  window.renderSources = function() {
+  function renderSources() {
     const grid = document.getElementById('book-grid');
     let sources = load(STORE.sources);
     if (currentCategoryFilter !== 'all') {
@@ -2645,26 +2313,26 @@
   }
 
   // ============ NOTES ============
-  window.addNote = function() {
+  function addNote() {
     const input = document.getElementById('note-input');
-    const text = input.innerHTML.trim();
-    if (!text || text === '<br>') return toast('Write something first');
+    const text = input.value.trim();
+    if (!text) return toast('Write something first');
     if (!currentSourceId) return toast('Pick a source first');
 
     const notes = load(STORE.notes);
     notes.unshift({
       id: Date.now(),
       sourceId: currentSourceId,
-      text: sanitizeHTML(text),
+      text,
       date: new Date().toISOString()
     });
     save(STORE.notes, notes);
-    input.innerHTML = '';
+    input.value = '';
     renderNotes();
     toast('Note saved');
   }
 
-  window.deleteNote = function(id) {
+  function deleteNote(id) {
     const notes = load(STORE.notes).filter(n => n.id !== id);
     save(STORE.notes, notes);
 
@@ -2681,7 +2349,7 @@
     toast('Deleted');
   }
 
-  window.renderNotes = function() {
+  function renderNotes() {
     const list = document.getElementById('notes-list');
     const notes = load(STORE.notes).filter(n => n.sourceId === currentSourceId);
 
@@ -2695,43 +2363,12 @@
         <div class="item-actions">
           <button class="icon-btn" onclick="deleteNote(${n.id})" title="Delete">✕</button>
         </div>
-        <div class="item-text">${n.text}</div>
+        <div class="item-text">${escapeHTML(n.text)}</div>
         <div class="item-meta">
           <span>${formatDate(n.date)}</span>
         </div>
       </div>
     `).join('');
-  }
-
-  window.exportNotesCsv = function(sourceId) {
-    let notes = load(STORE.notes);
-    const sources = load(STORE.sources);
-    
-    if (sourceId) {
-      notes = notes.filter(n => n.sourceId === sourceId);
-    }
-    
-    if (!notes.length) return toast('No notes to export');
-    
-    const header = 'Source,Note,Date\n';
-    const rows = notes.map(n => {
-      const src = n.sourceId ? sources.find(s => s.id === n.sourceId) : null;
-      const srcTitle = src ? src.title : 'Inbox (Unsorted)';
-      
-      const tmp = document.createElement('div');
-      tmp.innerHTML = n.text;
-      const plainText = tmp.textContent || tmp.innerText || "";
-      
-      return `"${srcTitle.replace(/"/g, '""')}","${plainText.replace(/"/g, '""')}","${new Date(n.date).toLocaleDateString()}"`;
-    }).join('\n');
-    
-    const csv = '\ufeff' + header + rows;
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([csv], {type: 'text/csv;charset=utf-8'}));
-    a.download = `thinkbook-notes-${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-    URL.revokeObjectURL(a.href);
-    toast('Notes downloaded');
   }
 
   // ============ MIND MAP ============
@@ -2743,7 +2380,7 @@
     connectMode: false, connectFrom: null, selectedNode: null
   };
 
-  window.renderMindmap = function() {
+  function renderMindmap() {
     if (!currentSourceId) return;
     const source = load(STORE.sources).find(s => s.id === currentSourceId);
     const notes = load(STORE.notes).filter(n => n.sourceId === currentSourceId);
@@ -2753,13 +2390,9 @@
     const centerNode = { id: 'center', text: source.title, x: 400, y: 300, isCenter: true };
     const noteNodes = notes.map((n, i) => {
       const saved = mmData.positions[n.id];
-      const tmp = document.createElement('div');
-      tmp.innerHTML = n.text;
-      const plainText = tmp.textContent || tmp.innerText || "";
-      
-      if (saved) return { id: n.id, text: plainText, x: saved.x, y: saved.y, isCenter: false };
+      if (saved) return { id: n.id, text: n.text, x: saved.x, y: saved.y, isCenter: false };
       const angle = (i / Math.max(notes.length, 1)) * Math.PI * 2 - Math.PI / 2;
-      return { id: n.id, text: plainText, x: 400 + Math.cos(angle) * 200, y: 300 + Math.sin(angle) * 200, isCenter: false };
+      return { id: n.id, text: n.text, x: 400 + Math.cos(angle) * 200, y: 300 + Math.sin(angle) * 200, isCenter: false };
     });
 
     mmState.nodes = [centerNode, ...noteNodes];
@@ -2858,7 +2491,7 @@
     return lines;
   }
 
-  window.toggleConnectMode = function() {
+  function toggleConnectMode() {
     mmState.connectMode = !mmState.connectMode;
     mmState.connectFrom = null;
     mmState.selectedNode = null;
@@ -2870,15 +2503,14 @@
     drawMindmap();
   }
 
-  window.resetMindmap = function() {
-    showConfirm('Reset layout and remove custom links?', () => {
-      const mm = load(STORE.mindmap, {});
-      delete mm[currentSourceId];
-      save(STORE.mindmap, mm);
-      mmState.viewBox = {x:0, y:0, w:800, h:600};
-      renderMindmap();
-      toast('Reset');
-    });
+  function resetMindmap() {
+    if (!confirm('Reset layout and remove custom links?')) return;
+    const mm = load(STORE.mindmap, {});
+    delete mm[currentSourceId];
+    save(STORE.mindmap, mm);
+    mmState.viewBox = {x:0, y:0, w:800, h:600};
+    renderMindmap();
+    toast('Reset');
   }
 
   function saveMindmapState() {
@@ -3018,7 +2650,7 @@
     }, {passive: false});
   })();
 
-  window.exportMindmap = function() {
+  function exportMindmap() {
     const src = load(STORE.sources).find(s => s.id === currentSourceId);
     const svg = document.getElementById('mindmap-svg');
     const clone = svg.cloneNode(true);
@@ -3064,9 +2696,17 @@
 
   // ============ DRAW TAB ============
   let drawState = {
-    tool: 'pen', color: '#1a1a1a', size: 3, strokes: [],
-    currentStroke: null, startPoint: null, previewStroke: null,
-    canvas: null, ctx: null, width: 0, height: 0
+    tool: 'pen',
+    color: '#1a1a1a',
+    size: 3,
+    strokes: [],          // array of stroke objects
+    currentStroke: null,
+    startPoint: null,
+    previewStroke: null,
+    canvas: null,
+    ctx: null,
+    width: 0,
+    height: 0
   };
 
   function initCanvas() {
@@ -3087,6 +2727,7 @@
     resize();
     window.addEventListener('resize', resize);
 
+    // Pointer events
     function getPoint(e) {
       const rect = canvas.getBoundingClientRect();
       const pointer = e.touches ? e.touches[0] : e;
@@ -3100,7 +2741,12 @@
       drawState.startPoint = pt;
 
       if (drawState.tool === 'pen' || drawState.tool === 'eraser') {
-        drawState.currentStroke = { tool: drawState.tool, color: drawState.color, size: drawState.size, points: [pt] };
+        drawState.currentStroke = {
+          tool: drawState.tool,
+          color: drawState.color,
+          size: drawState.size,
+          points: [pt]
+        };
       }
     }
 
@@ -3114,7 +2760,13 @@
         redrawCanvas();
         drawStroke(drawState.currentStroke);
       } else if (['line', 'rect', 'circle', 'arrow'].includes(drawState.tool)) {
-        drawState.previewStroke = { tool: drawState.tool, color: drawState.color, size: drawState.size, start: drawState.startPoint, end: pt };
+        drawState.previewStroke = {
+          tool: drawState.tool,
+          color: drawState.color,
+          size: drawState.size,
+          start: drawState.startPoint,
+          end: pt
+        };
         redrawCanvas();
         drawStroke(drawState.previewStroke);
       }
@@ -3122,8 +2774,14 @@
 
     function onEnd(e) {
       if (!drawState.startPoint) return;
-      if (drawState.currentStroke) { drawState.strokes.push(drawState.currentStroke); drawState.currentStroke = null; }
-      else if (drawState.previewStroke) { drawState.strokes.push(drawState.previewStroke); drawState.previewStroke = null; }
+
+      if (drawState.currentStroke) {
+        drawState.strokes.push(drawState.currentStroke);
+        drawState.currentStroke = null;
+      } else if (drawState.previewStroke) {
+        drawState.strokes.push(drawState.previewStroke);
+        drawState.previewStroke = null;
+      }
       drawState.startPoint = null;
       redrawCanvas();
     }
@@ -3141,6 +2799,7 @@
     canvas.addEventListener('mousemove', onMove);
     canvas.addEventListener('mouseup', onEnd);
     canvas.addEventListener('mouseleave', onEnd);
+
     canvas.addEventListener('touchstart', (e) => {
       if (drawState.tool === 'text') { e.preventDefault(); onCanvasTap(e); return; }
       onStart(e);
@@ -3168,7 +2827,12 @@
     const commit = () => {
       const text = input.value.trim();
       if (text) {
-        drawState.strokes.push({ tool: 'text', color: drawState.color, size: Math.max(drawState.size * 4, 14), x, y, text });
+        drawState.strokes.push({
+          tool: 'text',
+          color: drawState.color,
+          size: Math.max(drawState.size * 4, 14),
+          x, y, text
+        });
         redrawCanvas();
       }
       input.remove();
@@ -3190,76 +2854,114 @@
   function drawStroke(stroke) {
     const ctx = drawState.ctx;
     ctx.save();
-    ctx.strokeStyle = stroke.color; ctx.fillStyle = stroke.color;
-    ctx.lineWidth = stroke.size; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.strokeStyle = stroke.color;
+    ctx.fillStyle = stroke.color;
+    ctx.lineWidth = stroke.size;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
 
     if (stroke.tool === 'pen' || stroke.tool === 'eraser') {
-      if (stroke.tool === 'eraser') { ctx.globalCompositeOperation = 'destination-out'; ctx.strokeStyle = 'rgba(0,0,0,1)'; ctx.lineWidth = stroke.size * 2; }
+      if (stroke.tool === 'eraser') {
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.strokeStyle = 'rgba(0,0,0,1)';
+        ctx.lineWidth = stroke.size * 2;
+      }
       ctx.beginPath();
-      stroke.points.forEach((p, i) => { if (i === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y); });
+      stroke.points.forEach((p, i) => {
+        if (i === 0) ctx.moveTo(p.x, p.y);
+        else ctx.lineTo(p.x, p.y);
+      });
       ctx.stroke();
     } else if (stroke.tool === 'line') {
-      ctx.beginPath(); ctx.moveTo(stroke.start.x, stroke.start.y); ctx.lineTo(stroke.end.x, stroke.end.y); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(stroke.start.x, stroke.start.y);
+      ctx.lineTo(stroke.end.x, stroke.end.y);
+      ctx.stroke();
     } else if (stroke.tool === 'rect') {
       ctx.strokeRect(stroke.start.x, stroke.start.y, stroke.end.x - stroke.start.x, stroke.end.y - stroke.start.y);
     } else if (stroke.tool === 'circle') {
-      const cx = (stroke.start.x + stroke.end.x) / 2; const cy = (stroke.start.y + stroke.end.y) / 2;
-      const rx = Math.abs(stroke.end.x - stroke.start.x) / 2; const ry = Math.abs(stroke.end.y - stroke.start.y) / 2;
-      ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); ctx.stroke();
+      const cx = (stroke.start.x + stroke.end.x) / 2;
+      const cy = (stroke.start.y + stroke.end.y) / 2;
+      const rx = Math.abs(stroke.end.x - stroke.start.x) / 2;
+      const ry = Math.abs(stroke.end.y - stroke.start.y) / 2;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+      ctx.stroke();
     } else if (stroke.tool === 'arrow') {
-      const { start, end } = stroke; const dx = end.x - start.x; const dy = end.y - start.y;
-      const len = Math.hypot(dx, dy); const head = Math.min(12 + stroke.size * 2, len / 2); const angle = Math.atan2(dy, dx);
-      ctx.beginPath(); ctx.moveTo(start.x, start.y); ctx.lineTo(end.x, end.y); ctx.stroke();
+      const { start, end } = stroke;
+      const dx = end.x - start.x;
+      const dy = end.y - start.y;
+      const len = Math.hypot(dx, dy);
+      const head = Math.min(12 + stroke.size * 2, len / 2);
+      const angle = Math.atan2(dy, dx);
+
+      ctx.beginPath();
+      ctx.moveTo(start.x, start.y);
+      ctx.lineTo(end.x, end.y);
+      ctx.stroke();
+
       ctx.beginPath();
       ctx.moveTo(end.x, end.y);
       ctx.lineTo(end.x - head * Math.cos(angle - Math.PI / 6), end.y - head * Math.sin(angle - Math.PI / 6));
       ctx.lineTo(end.x - head * Math.cos(angle + Math.PI / 6), end.y - head * Math.sin(angle + Math.PI / 6));
-      ctx.closePath(); ctx.fill();
+      ctx.closePath();
+      ctx.fill();
     } else if (stroke.tool === 'text') {
-      ctx.font = `${stroke.size}px 'Inter Tight', sans-serif`; ctx.textBaseline = 'middle'; ctx.fillText(stroke.text, stroke.x, stroke.y);
+      ctx.font = `${stroke.size}px 'Inter Tight', sans-serif`;
+      ctx.textBaseline = 'middle';
+      ctx.fillText(stroke.text, stroke.x, stroke.y);
     }
     ctx.restore();
   }
 
-  window.setTool = function(tool) {
+  function setTool(tool) {
     drawState.tool = tool;
     document.querySelectorAll('.tool-btn[data-tool]').forEach(b => b.classList.toggle('active', b.dataset.tool === tool));
     drawState.canvas.style.cursor = tool === 'text' ? 'text' : 'crosshair';
   }
 
-  window.setColor = function(color, el) {
+  function setColor(color, el) {
     drawState.color = color;
     document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
     el.classList.add('active');
   }
 
-  window.undoDraw = function() { drawState.strokes.pop(); redrawCanvas(); }
-  
-  window.clearCanvas = function() { 
-    if (!drawState.strokes.length) return; 
-    showConfirm('Clear the whole canvas?', () => {
-      drawState.strokes = []; 
-      redrawCanvas(); 
-    });
+  function undoDraw() {
+    drawState.strokes.pop();
+    redrawCanvas();
   }
 
-  window.newDrawing = function() {
-    currentDrawingId = null; drawState.strokes = [];
-    document.getElementById('draw-title-input').value = '';
-    populateDrawSourceSelect(); document.getElementById('draw-source-select').value = '';
-    currentTab = 'draw'; showView('draw-editor-view'); setTimeout(() => { initCanvas(); }, 50);
+  function clearCanvas() {
+    if (!drawState.strokes.length) return;
+    if (!confirm('Clear the whole canvas?')) return;
+    drawState.strokes = [];
+    redrawCanvas();
   }
 
-  window.newDrawingForSource = function() {
-    currentDrawingId = null; drawState.strokes = [];
+  function newDrawing() {
+    currentDrawingId = null;
+    drawState.strokes = [];
     document.getElementById('draw-title-input').value = '';
-    populateDrawSourceSelect(); document.getElementById('draw-source-select').value = currentSourceId || '';
+    populateDrawSourceSelect();
+    document.getElementById('draw-source-select').value = '';
+    currentTab = 'draw';
+    showView('draw-editor-view');
+    setTimeout(() => { initCanvas(); }, 50);
+  }
+
+  function newDrawingForSource() {
+    currentDrawingId = null;
+    drawState.strokes = [];
+    document.getElementById('draw-title-input').value = '';
+    populateDrawSourceSelect();
+    document.getElementById('draw-source-select').value = currentSourceId || '';
     currentTab = 'draw';
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('draw-panel').classList.add('active');
     document.querySelector('.tab-btn[data-tab="draw"]').classList.add('active');
-    showView('draw-editor-view'); setTimeout(() => { initCanvas(); }, 50);
+    showView('draw-editor-view');
+    setTimeout(() => { initCanvas(); }, 50);
   }
 
   function populateDrawSourceSelect() {
@@ -3269,18 +2971,24 @@
       sources.map(s => `<option value="${s.id}">${escapeHTML(s.title)}</option>`).join('');
   }
 
-  window.openDrawing = function(id) {
+  function openDrawing(id) {
     const drawing = load(STORE.drawings).find(d => d.id === id);
     if (!drawing) return;
-    currentDrawingId = id; drawState.strokes = drawing.strokes || [];
+    currentDrawingId = id;
+    drawState.strokes = drawing.strokes || [];
     document.getElementById('draw-title-input').value = drawing.title || '';
-    populateDrawSourceSelect(); document.getElementById('draw-source-select').value = drawing.sourceId || '';
-    showView('draw-editor-view'); setTimeout(() => { initCanvas(); redrawCanvas(); }, 50);
+    populateDrawSourceSelect();
+    document.getElementById('draw-source-select').value = drawing.sourceId || '';
+    showView('draw-editor-view');
+    setTimeout(() => { initCanvas(); redrawCanvas(); }, 50);
   }
 
-  window.exitDrawEditor = function() { showView('draw-list-view'); renderDrawings(); }
+  function exitDrawEditor() {
+    showView('draw-list-view');
+    renderDrawings();
+  }
 
-  window.saveDrawing = function() {
+  function saveDrawing() {
     const title = document.getElementById('draw-title-input').value.trim() || 'Untitled';
     const sourceId = document.getElementById('draw-source-select').value || null;
     const thumb = createThumb();
@@ -3288,54 +2996,101 @@
     const drawings = load(STORE.drawings);
     if (currentDrawingId) {
       const d = drawings.find(x => x.id === currentDrawingId);
-      if (d) { d.title = title; d.sourceId = sourceId ? parseInt(sourceId) : null; d.strokes = drawState.strokes; d.thumb = thumb; d.modified = new Date().toISOString(); }
+      if (d) {
+        d.title = title;
+        d.sourceId = sourceId ? parseInt(sourceId) : null;
+        d.strokes = drawState.strokes;
+        d.thumb = thumb;
+        d.modified = new Date().toISOString();
+      }
     } else {
       currentDrawingId = Date.now();
-      drawings.unshift({ id: currentDrawingId, title, sourceId: sourceId ? parseInt(sourceId) : null, strokes: drawState.strokes, thumb, date: new Date().toISOString() });
+      drawings.unshift({
+        id: currentDrawingId,
+        title,
+        sourceId: sourceId ? parseInt(sourceId) : null,
+        strokes: drawState.strokes,
+        thumb,
+        date: new Date().toISOString()
+      });
     }
-    save(STORE.drawings, drawings); toast('Saved');
+    save(STORE.drawings, drawings);
+    toast('Saved');
   }
 
   function createThumb() {
-    const canvas = document.createElement('canvas'); const w = 300, h = 200;
-    canvas.width = w; canvas.height = h; const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#fdfcf7'; ctx.fillRect(0, 0, w, h);
+    const canvas = document.createElement('canvas');
+    const w = 300, h = 200;
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#fdfcf7';
+    ctx.fillRect(0, 0, w, h);
+
     if (!drawState.width || !drawState.height) return canvas.toDataURL('image/png', 0.5);
-    const scale = Math.min(w / drawState.width, h / drawState.height); ctx.scale(scale, scale);
-    const origCtx = drawState.ctx; drawState.ctx = ctx; drawState.strokes.forEach(drawStroke); drawState.ctx = origCtx;
+
+    const scale = Math.min(w / drawState.width, h / drawState.height);
+    ctx.scale(scale, scale);
+
+    const origCtx = drawState.ctx;
+    drawState.ctx = ctx;
+    drawState.strokes.forEach(drawStroke);
+    drawState.ctx = origCtx;
+
     return canvas.toDataURL('image/png', 0.5);
   }
 
-  window.exportDrawing = function() {
+  function exportDrawing() {
     const title = document.getElementById('draw-title-input').value.trim() || 'drawing';
     const canvas = document.createElement('canvas');
-    const w = drawState.width || 800; const h = drawState.height || 600;
-    canvas.width = w * 2; canvas.height = h * 2; const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#fdfcf7'; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.scale(2, 2);
-    const origCtx = drawState.ctx; drawState.ctx = ctx; drawState.strokes.forEach(drawStroke); drawState.ctx = origCtx;
+    const w = drawState.width || 800;
+    const h = drawState.height || 600;
+    canvas.width = w * 2;
+    canvas.height = h * 2;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#fdfcf7';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.scale(2, 2);
+
+    const origCtx = drawState.ctx;
+    drawState.ctx = ctx;
+    drawState.strokes.forEach(drawStroke);
+    drawState.ctx = origCtx;
 
     canvas.toBlob(blob => {
-      const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-      a.download = `${title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.png`; a.click();
-      URL.revokeObjectURL(a.href); toast('Exported');
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `${title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.png`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+      toast('Exported');
     });
   }
 
-  window.deleteDrawing = function(id, e) {
-    e.stopPropagation(); 
-    showConfirm('Delete this drawing?', () => {
-      const drawings = load(STORE.drawings).filter(d => d.id !== id);
-      save(STORE.drawings, drawings); 
-      renderDrawings(); 
-      toast('Deleted');
-    });
+  function deleteDrawing(id, e) {
+    e.stopPropagation();
+    if (!confirm('Delete this drawing?')) return;
+    const drawings = load(STORE.drawings).filter(d => d.id !== id);
+    save(STORE.drawings, drawings);
+    renderDrawings();
+    toast('Deleted');
   }
 
-  window.renderDrawings = function() {
+  function renderDrawings() {
     const grid = document.getElementById('draw-grid');
-    const drawings = load(STORE.drawings); const sources = load(STORE.sources);
-    const addCard = `<div class="draw-card add-draw" onclick="newDrawing()"><div class="plus">+</div><div class="add-label">New Drawing</div></div>`;
-    if (!drawings.length) { grid.innerHTML = addCard; return; }
+    const drawings = load(STORE.drawings);
+    const sources = load(STORE.sources);
+
+    const addCard = `
+      <div class="draw-card add-draw" onclick="newDrawing()">
+        <div class="plus">+</div>
+        <div class="add-label">New Drawing</div>
+      </div>
+    `;
+
+    if (!drawings.length) {
+      grid.innerHTML = addCard;
+      return;
+    }
 
     grid.innerHTML = addCard + drawings.map(d => {
       const src = d.sourceId ? sources.find(s => s.id === d.sourceId) : null;
@@ -3343,7 +3098,9 @@
       return `
         <div class="draw-card" onclick="openDrawing(${d.id})">
           <button class="delete-small" onclick="deleteDrawing(${d.id}, event)" title="Delete">✕</button>
-          <div class="draw-thumb">${d.thumb ? `<img src="${d.thumb}" alt="" />` : '<span style="color:var(--ink-faint); font-size:12px;">empty</span>'}</div>
+          <div class="draw-thumb">
+            ${d.thumb ? `<img src="${d.thumb}" alt="" />` : '<span style="color:var(--ink-faint); font-size:12px;">empty</span>'}
+          </div>
           <div class="title">${escapeHTML(d.title || 'Untitled')}</div>
           <div class="subtitle">${date.toLocaleDateString()}</div>
           ${src ? `<div class="tag">${escapeHTML(src.title)}</div>` : ''}
@@ -3352,10 +3109,12 @@
     }).join('');
   }
 
-  document.getElementById('size-slider').addEventListener('input', (e) => { drawState.size = parseInt(e.target.value); });
+  document.getElementById('size-slider').addEventListener('input', (e) => {
+    drawState.size = parseInt(e.target.value);
+  });
 
   // ============ TASKS ============
-  window.addTask = function() {
+  function addTask() {
     const input = document.getElementById('task-input');
     const time = document.getElementById('task-time');
     const text = input.value.trim();
@@ -3368,19 +3127,19 @@
     toast('Task added');
   }
 
-  window.toggleTask = function(id) {
+  function toggleTask(id) {
     const tasks = load(STORE.tasks);
     const t = tasks.find(x => x.id === id);
     if (t) { t.done = !t.done; save(STORE.tasks, tasks); renderTasks(); }
   }
 
-  window.deleteTask = function(id) {
+  function deleteTask(id) {
     save(STORE.tasks, load(STORE.tasks).filter(t => t.id !== id));
     renderTasks();
     toast('Deleted');
   }
 
-  window.renderTasks = function() {
+  function renderTasks() {
     const list = document.getElementById('tasks-list');
     const tasks = load(STORE.tasks).sort((a, b) => {
       if (a.done !== b.done) return a.done ? 1 : -1;
@@ -3401,37 +3160,25 @@
       }
       return `
         <div class="item ${cls}">
-          <div class="item-actions"><button class="icon-btn" onclick="deleteTask(${t.id})">✕</button></div>
-          <div class="item-text"><span class="checkbox ${t.done ? 'checked' : ''}" onclick="toggleTask(${t.id})">${t.done ? '✓' : ''}</span>${escapeHTML(t.text)}</div>
-          <div class="item-meta">${t.due ? `<span class="task-time">◷ ${formatDueDate(t.due)}</span>` : '<span>no time set</span>'}</div>
+          <div class="item-actions">
+            <button class="icon-btn" onclick="deleteTask(${t.id})">✕</button>
+          </div>
+          <div class="item-text">
+            <span class="checkbox ${t.done ? 'checked' : ''}" onclick="toggleTask(${t.id})">${t.done ? '✓' : ''}</span>
+            ${escapeHTML(t.text)}
+          </div>
+          <div class="item-meta">
+            ${t.due ? `<span class="task-time">◷ ${formatDueDate(t.due)}</span>` : '<span>no time set</span>'}
+          </div>
         </div>
       `;
     }).join('');
   }
 
   // ============ TRANSLATOR ============
-  window.swapLanguages = function() {
-    const srcSelect = document.getElementById('source-lang');
-    const tgtSelect = document.getElementById('target-lang');
-    const temp = srcSelect.value;
-    srcSelect.value = tgtSelect.value;
-    tgtSelect.value = temp;
-
-    const input = document.getElementById('source-text');
-    const output = document.getElementById('trans-output');
-    
-    if (output.dataset.translation && !output.classList.contains('empty-state')) {
-      input.value = output.dataset.translation;
-      output.textContent = 'Translation will appear here';
-      output.classList.add('empty-state');
-      delete output.dataset.translation;
-    }
-  }
-
-  window.doTranslate = async function() {
+  async function doTranslate() {
     const source = document.getElementById('source-text').value.trim();
     const output = document.getElementById('trans-output');
-    const sourceLang = document.getElementById('source-lang').value;
     const targetLang = document.getElementById('target-lang').value;
     if (!source) return toast('Type a word first');
 
@@ -3439,7 +3186,7 @@
     output.classList.add('loading');
     output.textContent = 'Translating…';
     try {
-      const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(source)}&langpair=${sourceLang}|${targetLang}`);
+      const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(source)}&langpair=en|${targetLang}`);
       const data = await res.json();
       if (data.responseData) {
         output.classList.remove('loading');
@@ -3447,7 +3194,6 @@
         output.dataset.translation = data.responseData.translatedText;
         output.dataset.source = source;
         output.dataset.lang = targetLang;
-        output.dataset.sourceLang = sourceLang;
       } else throw new Error();
     } catch {
       output.classList.remove('loading');
@@ -3456,54 +3202,54 @@
     }
   }
 
-  window.saveVocab = function() {
+  function saveVocab() {
     const output = document.getElementById('trans-output');
-    const { source, translation, lang, sourceLang } = output.dataset;
+    const { source, translation, lang } = output.dataset;
     if (!source || !translation) return toast('Translate something first');
     const vocab = load(STORE.vocab);
-    
-    const srcLangToSave = sourceLang || 'en';
-
-    if (vocab.some(v => v.source === source && v.lang === lang && v.sourceLang === srcLangToSave)) return toast('Already saved');
-    vocab.unshift({ id: Date.now(), source, translation, lang, sourceLang: srcLangToSave, date: new Date().toISOString() });
+    if (vocab.some(v => v.source === source && v.lang === lang)) return toast('Already saved');
+    vocab.unshift({ id: Date.now(), source, translation, lang, date: new Date().toISOString() });
     save(STORE.vocab, vocab);
     renderVocab();
     toast('Word saved');
   }
 
-  window.deleteVocab = function(id) { save(STORE.vocab, load(STORE.vocab).filter(v => v.id !== id)); renderVocab(); toast('Deleted'); }
-
-  let currentVocabFilter = 'all';
-  window.filterVocab = function(lang, btn) {
-    currentVocabFilter = lang;
-    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-    btn.classList.add('active'); renderVocab();
+  function deleteVocab(id) {
+    save(STORE.vocab, load(STORE.vocab).filter(v => v.id !== id));
+    renderVocab();
+    toast('Deleted');
   }
 
-  window.renderVocab = function() {
+  let currentVocabFilter = 'all';
+  function filterVocab(lang, btn) {
+    currentVocabFilter = lang;
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    renderVocab();
+  }
+
+  function renderVocab() {
     const rows = document.getElementById('vocab-rows');
     let vocab = load(STORE.vocab);
-    if (currentVocabFilter !== 'all') {
-      vocab = vocab.filter(v => v.lang === currentVocabFilter || (v.sourceLang || 'en') === currentVocabFilter);
-    }
+    if (currentVocabFilter !== 'all') vocab = vocab.filter(v => v.lang === currentVocabFilter);
     if (!vocab.length) {
       rows.innerHTML = '<div class="vocab-row"><div style="grid-column:1/-1; text-align:center; color:var(--ink-faint); font-style:italic; padding:20px 0;">No words yet</div></div>';
       return;
     }
     rows.innerHTML = vocab.map(v => `
       <div class="vocab-row">
-        <div class="vocab-source">${escapeHTML(v.source)}<span class="vocab-lang-tag">${(v.sourceLang || 'en').toUpperCase()}→${v.lang.toUpperCase()}</span></div>
+        <div class="vocab-source">${escapeHTML(v.source)}<span class="vocab-lang-tag">${v.lang}</span></div>
         <div class="vocab-target">${escapeHTML(v.translation)}</div>
         <button class="icon-btn" onclick="deleteVocab(${v.id})">✕</button>
       </div>
     `).join('');
   }
 
-  window.exportVocab = function() {
+  function exportVocab() {
     const vocab = load(STORE.vocab);
     if (!vocab.length) return toast('Nothing to export');
-    const header = 'Word,Translation,Language Pair,Date Saved\n';
-    const rows = vocab.map(v => [v.source, v.translation, `${(v.sourceLang || 'en').toUpperCase()}-${v.lang.toUpperCase()}`, new Date(v.date).toLocaleDateString()]
+    const header = 'English,Translation,Language,Date Saved\n';
+    const rows = vocab.map(v => [v.source, v.translation, v.lang, new Date(v.date).toLocaleDateString()]
       .map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
     const csv = '\ufeff' + header + rows;
     const a = document.createElement('a');
@@ -3514,32 +3260,25 @@
     toast('Spreadsheet downloaded');
   }
 
-  window.clearVocab = function() { 
-    showConfirm('Clear all saved words?', () => {
-      save(STORE.vocab, []); 
-      renderVocab(); 
-      toast('Cleared'); 
-    });
-  }
-
-  // A global function to re-render everything if cloud data arrives
-  window.renderAllViews = function() {
-    renderCategories();
-    renderSources();
-    renderInbox();
-    renderTasks();
+  function clearVocab() {
+    if (!confirm('Clear all saved words?')) return;
+    save(STORE.vocab, []);
     renderVocab();
-    if(currentTab === 'draw') renderDrawings();
+    toast('Cleared');
   }
 
   // ============ INIT ============
-  window.renderAllViews();
+  renderCategories();
+  renderSources();
+  renderInbox();
+  renderTasks();
+  renderVocab();
   updateHeader();
 
   setInterval(renderTasks, 60000);
 
   document.getElementById('source-text').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); window.doTranslate(); }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doTranslate(); }
   });
 </script>
 </body>
