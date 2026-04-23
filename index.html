@@ -153,6 +153,12 @@
     font-family: inherit;
     flex-shrink: 0;
   }
+  
+  .header-action.secondary {
+    background: transparent;
+    color: var(--ink-soft);
+    border: 1px solid var(--line);
+  }
 
   /* Tab content */
   main {
@@ -1574,6 +1580,7 @@
   <div style="display:flex; align-items:center; gap:10px;">
     <span class="sync-badge" id="sync-status">☁️ Connecting...</span>
     <button class="header-action" id="auth-btn" onclick="handleAuthClick()">Login</button>
+    <button class="header-action secondary" id="logout-btn" onclick="handleLogoutClick()" style="display:none;">Logout</button>
     <button class="header-action" id="header-action" onclick="headerAction()" style="display:none;">+ Book</button>
   </div>
 </header>
@@ -1606,7 +1613,10 @@
       <!-- Categories + books -->
       <div class="section-header">
         <span class="section-label">◉ Library</span>
-        <button class="btn btn-small btn-outline" onclick="openBookModal(false)">+ Book</button>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-small btn-ghost" onclick="window.exportNotesCsv(null)">↓ Export Notes</button>
+          <button class="btn btn-small btn-outline" onclick="openBookModal(false)">+ Book</button>
+        </div>
       </div>
       <div class="category-bar" id="category-bar"></div>
       <div class="book-grid" id="book-grid"></div>
@@ -1622,6 +1632,7 @@
           <button class="btn btn-accent btn-small" onclick="showView('mindmap-view'); renderMindmap();">◉ Mind Map</button>
           <button class="btn btn-outline btn-small" onclick="newDrawingForSource()">✎ Draw</button>
           <button class="btn btn-outline btn-small" onclick="openBookModal(true)">Edit</button>
+          <button class="btn btn-ghost btn-small" onclick="window.exportNotesCsv(currentSourceId)">↓ Export CSV</button>
           <button class="btn btn-ghost btn-small danger" onclick="deleteCurrentSource()">Delete</button>
         </div>
       </div>
@@ -2392,6 +2403,37 @@
         </div>
       </div>
     `).join('');
+  }
+
+  window.exportNotesCsv = function(sourceId) {
+    let notes = load(STORE.notes);
+    const sources = load(STORE.sources);
+    
+    if (sourceId) {
+      notes = notes.filter(n => n.sourceId === sourceId);
+    }
+    
+    if (!notes.length) return toast('No notes to export');
+    
+    const header = 'Source,Note,Date\n';
+    const rows = notes.map(n => {
+      const src = n.sourceId ? sources.find(s => s.id === n.sourceId) : null;
+      const srcTitle = src ? src.title : 'Inbox (Unsorted)';
+      
+      const tmp = document.createElement('div');
+      tmp.innerHTML = n.text;
+      const plainText = tmp.textContent || tmp.innerText || "";
+      
+      return `"${srcTitle.replace(/"/g, '""')}","${plainText.replace(/"/g, '""')}","${new Date(n.date).toLocaleDateString()}"`;
+    }).join('\n');
+    
+    const csv = '\ufeff' + header + rows;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], {type: 'text/csv;charset=utf-8'}));
+    a.download = `thinkbook-notes-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast('Notes downloaded');
   }
 
   // ============ MIND MAP ============
@@ -3374,8 +3416,31 @@
     tokenClient.requestAccessToken({prompt: 'consent'});
   };
 
+  window.handleLogoutClick = function() {
+    showConfirm('Are you sure you want to log out?', () => {
+      if (accessToken && typeof google !== 'undefined' && google.accounts) {
+        google.accounts.oauth2.revoke(accessToken, () => {});
+      }
+      
+      localStorage.removeItem('drive_token');
+      accessToken = null;
+      driveFileId = null;
+      
+      document.getElementById('auth-btn').style.display = 'block';
+      document.getElementById('logout-btn').style.display = 'none';
+      
+      const badge = document.getElementById('sync-status');
+      badge.className = 'sync-badge active pending';
+      badge.textContent = '⚠️ Not logged in';
+      
+      toast('Logged out successfully');
+    });
+  };
+
   function onAuthSuccess() {
     document.getElementById('auth-btn').style.display = 'none';
+    document.getElementById('logout-btn').style.display = 'block';
+    
     const badge = document.getElementById('sync-status');
     badge.classList.add('active', 'pending');
     badge.textContent = '☁️ Fetching...';
@@ -3386,6 +3451,8 @@
     localStorage.removeItem('drive_token');
     accessToken = null;
     document.getElementById('auth-btn').style.display = 'block';
+    document.getElementById('logout-btn').style.display = 'none';
+    
     const badge = document.getElementById('sync-status');
     badge.className = 'sync-badge active pending';
     badge.textContent = '⚠️ Session Expired';
