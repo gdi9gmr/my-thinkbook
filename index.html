@@ -48,38 +48,21 @@
     padding-bottom: 90px;
   }
 
-  /* Cloud Loader Overlay */
-  #cloud-loader {
-    position: fixed;
-    inset: 0;
-    background: var(--bg);
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    transition: opacity 0.3s ease;
-  }
-  .spinner {
-    width: 40px;
-    height: 40px;
-    border: 3px solid var(--line);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-bottom: 16px;
-  }
-  @keyframes spin { 100% { transform: rotate(360deg); } }
-
-  .cloud-indicator {
+  /* Sync Indicator */
+  .sync-badge {
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px;
-    color: var(--ink-faint);
-    display: flex;
+    padding: 4px 8px;
+    border-radius: 100px;
+    display: none;
     align-items: center;
     gap: 4px;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
   }
-  .cloud-indicator.synced { color: var(--green); }
+  .sync-badge.active { display: flex; }
+  .sync-badge.synced { color: var(--green); border-color: var(--green-soft); }
+  .sync-badge.pending { color: var(--accent); }
 
   /* Header */
   .app-header {
@@ -1584,17 +1567,13 @@
 </head>
 <body>
 
-<div id="cloud-loader">
-  <div class="spinner"></div>
-  <div class="cloud-indicator">☁️ Syncing Cloud Data...</div>
-</div>
-
 <header class="app-header">
   <div class="header-left" id="header-content">
     <div class="brand"><h1>Thinkbook</h1> <span class="dot"></span></div>
   </div>
   <div style="display:flex; align-items:center; gap:10px;">
-    <span class="cloud-indicator synced" id="cloud-status" style="display:none;">☁️ Synced</span>
+    <span class="sync-badge" id="sync-status">☁️ Connecting...</span>
+    <button class="header-action" id="auth-btn" onclick="handleAuthClick()">Login</button>
     <button class="header-action" id="header-action" onclick="headerAction()" style="display:none;">+ Book</button>
   </div>
 </header>
@@ -1754,17 +1733,26 @@
 
     <div class="translator-box">
       <div class="lang-bar">
-        <div class="lang-select"><span>EN</span></div>
-        <span class="arrow">→</span>
+        <div class="lang-select">
+          <select id="source-lang">
+            <option value="en">EN — English</option>
+            <option value="ja">JA — Japanese</option>
+            <option value="th">TH — Thai</option>
+            <option value="de">DE — German</option>
+          </select>
+        </div>
+        <button class="icon-btn swap-btn" onclick="swapLanguages()" title="Swap languages">⇄</button>
         <div class="lang-select">
           <select id="target-lang">
-            <option value="de">DE — German</option>
             <option value="th">TH — Thai</option>
+            <option value="ja">JA — Japanese</option>
+            <option value="en">EN — English</option>
+            <option value="de">DE — German</option>
           </select>
         </div>
       </div>
       <div class="trans-input">
-        <textarea id="source-text" placeholder="Type a word or phrase in English…"></textarea>
+        <textarea id="source-text" placeholder="Type a word or phrase…"></textarea>
       </div>
       <div class="trans-output empty-state" id="trans-output">Translation will appear here</div>
       <div class="trans-actions">
@@ -1775,13 +1763,14 @@
 
     <div class="vocab-filter">
       <button class="filter-chip active" data-filter="all" onclick="filterVocab('all', this)">All</button>
-      <button class="filter-chip" data-filter="de" onclick="filterVocab('de', this)">German</button>
+      <button class="filter-chip" data-filter="en" onclick="filterVocab('en', this)">English</button>
+      <button class="filter-chip" data-filter="ja" onclick="filterVocab('ja', this)">Japanese</button>
       <button class="filter-chip" data-filter="th" onclick="filterVocab('th', this)">Thai</button>
     </div>
 
     <div class="vocab-table" id="vocab-table">
       <div class="vocab-row header">
-        <div>English</div><div>Translation</div><div></div>
+        <div>Word</div><div>Translation</div><div></div>
       </div>
       <div id="vocab-rows"></div>
     </div>
@@ -1837,6 +1826,17 @@
   </div>
 </div>
 
+<!-- MODAL: Custom Confirm -->
+<div class="modal-backdrop" id="confirm-modal" style="z-index: 500;">
+  <div class="modal" style="max-width: 400px; text-align: center; padding-bottom: 30px;">
+    <h3 id="confirm-message" style="font-size: 16px; margin-bottom: 24px; font-family: 'Inter Tight', sans-serif; font-weight: 500; line-height: 1.5;">Are you sure?</h3>
+    <div class="modal-actions" style="margin-top: 0;">
+      <button class="btn btn-outline" onclick="closeConfirmModal()">Cancel</button>
+      <button class="btn btn-accent" id="confirm-btn">Confirm</button>
+    </div>
+  </div>
+</div>
+
 <!-- Bottom Nav -->
 <nav class="tab-nav">
   <button class="tab-btn active" data-tab="notes" onclick="switchTab('notes')">
@@ -1877,6 +1877,10 @@
   function save(key, data) {
     try {
       localStorage.setItem(key, JSON.stringify(data));
+      // Trigger cloud sync
+      if (window.syncToDrive) {
+        window.syncToDrive();
+      }
     } catch (e) {
       toast('Storage full — delete some drawings');
     }
@@ -1942,6 +1946,25 @@
   function closeModalIfBackdrop(e, id) {
     if (e.target.id === id) closeModal(id);
   }
+
+  // ============ CUSTOM CONFIRM ============
+  let confirmCallback = null;
+
+  function showConfirm(message, callback) {
+    document.getElementById('confirm-message').textContent = message;
+    confirmCallback = callback;
+    document.getElementById('confirm-modal').classList.add('active');
+  }
+
+  function closeConfirmModal() {
+    document.getElementById('confirm-modal').classList.remove('active');
+    confirmCallback = null;
+  }
+
+  document.getElementById('confirm-btn').addEventListener('click', () => {
+    if (confirmCallback) confirmCallback();
+    closeConfirmModal();
+  });
 
   // ============ HEADER ============
   function updateHeader() {
@@ -2257,25 +2280,25 @@
 
   function deleteCurrentSource() {
     if (!currentSourceId) return;
-    if (!confirm('Delete this source and all its notes? (Drawings will be kept as standalone.)')) return;
+    showConfirm('Delete this source and all its notes? (Drawings will be kept as standalone.)', () => {
+      const sources = load(STORE.sources).filter(s => s.id !== currentSourceId);
+      const notes = load(STORE.notes).filter(n => n.sourceId !== currentSourceId);
+      save(STORE.sources, sources);
+      save(STORE.notes, notes);
 
-    const sources = load(STORE.sources).filter(s => s.id !== currentSourceId);
-    const notes = load(STORE.notes).filter(n => n.sourceId !== currentSourceId);
-    save(STORE.sources, sources);
-    save(STORE.notes, notes);
+      // Detach drawings instead of deleting
+      const drawings = load(STORE.drawings);
+      drawings.forEach(d => { if (d.sourceId === currentSourceId) d.sourceId = null; });
+      save(STORE.drawings, drawings);
 
-    // Detach drawings instead of deleting
-    const drawings = load(STORE.drawings);
-    drawings.forEach(d => { if (d.sourceId === currentSourceId) d.sourceId = null; });
-    save(STORE.drawings, drawings);
+      const mm = load(STORE.mindmap, {});
+      delete mm[currentSourceId];
+      save(STORE.mindmap, mm);
 
-    const mm = load(STORE.mindmap, {});
-    delete mm[currentSourceId];
-    save(STORE.mindmap, mm);
-
-    currentSourceId = null;
-    showView('sources-view');
-    toast('Source deleted');
+      currentSourceId = null;
+      showView('sources-view');
+      toast('Source deleted');
+    });
   }
 
   function renderSources() {
@@ -2504,13 +2527,14 @@
   }
 
   function resetMindmap() {
-    if (!confirm('Reset layout and remove custom links?')) return;
-    const mm = load(STORE.mindmap, {});
-    delete mm[currentSourceId];
-    save(STORE.mindmap, mm);
-    mmState.viewBox = {x:0, y:0, w:800, h:600};
-    renderMindmap();
-    toast('Reset');
+    showConfirm('Reset layout and remove custom links?', () => {
+      const mm = load(STORE.mindmap, {});
+      delete mm[currentSourceId];
+      save(STORE.mindmap, mm);
+      mmState.viewBox = {x:0, y:0, w:800, h:600};
+      renderMindmap();
+      toast('Reset');
+    });
   }
 
   function saveMindmapState() {
@@ -2933,9 +2957,10 @@
 
   function clearCanvas() {
     if (!drawState.strokes.length) return;
-    if (!confirm('Clear the whole canvas?')) return;
-    drawState.strokes = [];
-    redrawCanvas();
+    showConfirm('Clear the whole canvas?', () => {
+      drawState.strokes = [];
+      redrawCanvas();
+    });
   }
 
   function newDrawing() {
@@ -3068,11 +3093,12 @@
 
   function deleteDrawing(id, e) {
     e.stopPropagation();
-    if (!confirm('Delete this drawing?')) return;
-    const drawings = load(STORE.drawings).filter(d => d.id !== id);
-    save(STORE.drawings, drawings);
-    renderDrawings();
-    toast('Deleted');
+    showConfirm('Delete this drawing?', () => {
+      const drawings = load(STORE.drawings).filter(d => d.id !== id);
+      save(STORE.drawings, drawings);
+      renderDrawings();
+      toast('Deleted');
+    });
   }
 
   function renderDrawings() {
@@ -3176,9 +3202,28 @@
   }
 
   // ============ TRANSLATOR ============
-  async function doTranslate() {
+  window.swapLanguages = function() {
+    const srcSelect = document.getElementById('source-lang');
+    const tgtSelect = document.getElementById('target-lang');
+    const temp = srcSelect.value;
+    srcSelect.value = tgtSelect.value;
+    tgtSelect.value = temp;
+
+    const input = document.getElementById('source-text');
+    const output = document.getElementById('trans-output');
+    
+    if (output.dataset.translation && !output.classList.contains('empty-state')) {
+      input.value = output.dataset.translation;
+      output.textContent = 'Translation will appear here';
+      output.classList.add('empty-state');
+      delete output.dataset.translation;
+    }
+  }
+
+  window.doTranslate = async function() {
     const source = document.getElementById('source-text').value.trim();
     const output = document.getElementById('trans-output');
+    const sourceLang = document.getElementById('source-lang').value;
     const targetLang = document.getElementById('target-lang').value;
     if (!source) return toast('Type a word first');
 
@@ -3186,7 +3231,7 @@
     output.classList.add('loading');
     output.textContent = 'Translating…';
     try {
-      const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(source)}&langpair=en|${targetLang}`);
+      const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(source)}&langpair=${sourceLang}|${targetLang}`);
       const data = await res.json();
       if (data.responseData) {
         output.classList.remove('loading');
@@ -3194,6 +3239,7 @@
         output.dataset.translation = data.responseData.translatedText;
         output.dataset.source = source;
         output.dataset.lang = targetLang;
+        output.dataset.sourceLang = sourceLang;
       } else throw new Error();
     } catch {
       output.classList.remove('loading');
@@ -3202,54 +3248,59 @@
     }
   }
 
-  function saveVocab() {
+  window.saveVocab = function() {
     const output = document.getElementById('trans-output');
-    const { source, translation, lang } = output.dataset;
+    const { source, translation, lang, sourceLang } = output.dataset;
     if (!source || !translation) return toast('Translate something first');
     const vocab = load(STORE.vocab);
-    if (vocab.some(v => v.source === source && v.lang === lang)) return toast('Already saved');
-    vocab.unshift({ id: Date.now(), source, translation, lang, date: new Date().toISOString() });
+    
+    const srcLangToSave = sourceLang || 'en';
+
+    if (vocab.some(v => v.source === source && v.lang === lang && v.sourceLang === srcLangToSave)) return toast('Already saved');
+    vocab.unshift({ id: Date.now(), source, translation, lang, sourceLang: srcLangToSave, date: new Date().toISOString() });
     save(STORE.vocab, vocab);
     renderVocab();
     toast('Word saved');
   }
 
-  function deleteVocab(id) {
+  window.deleteVocab = function(id) {
     save(STORE.vocab, load(STORE.vocab).filter(v => v.id !== id));
     renderVocab();
     toast('Deleted');
   }
 
   let currentVocabFilter = 'all';
-  function filterVocab(lang, btn) {
+  window.filterVocab = function(lang, btn) {
     currentVocabFilter = lang;
     document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
     btn.classList.add('active');
     renderVocab();
   }
 
-  function renderVocab() {
+  window.renderVocab = function() {
     const rows = document.getElementById('vocab-rows');
     let vocab = load(STORE.vocab);
-    if (currentVocabFilter !== 'all') vocab = vocab.filter(v => v.lang === currentVocabFilter);
+    if (currentVocabFilter !== 'all') {
+      vocab = vocab.filter(v => v.lang === currentVocabFilter || (v.sourceLang || 'en') === currentVocabFilter);
+    }
     if (!vocab.length) {
       rows.innerHTML = '<div class="vocab-row"><div style="grid-column:1/-1; text-align:center; color:var(--ink-faint); font-style:italic; padding:20px 0;">No words yet</div></div>';
       return;
     }
     rows.innerHTML = vocab.map(v => `
       <div class="vocab-row">
-        <div class="vocab-source">${escapeHTML(v.source)}<span class="vocab-lang-tag">${v.lang}</span></div>
+        <div class="vocab-source">${escapeHTML(v.source)}<span class="vocab-lang-tag">${(v.sourceLang || 'en').toUpperCase()}→${v.lang.toUpperCase()}</span></div>
         <div class="vocab-target">${escapeHTML(v.translation)}</div>
         <button class="icon-btn" onclick="deleteVocab(${v.id})">✕</button>
       </div>
     `).join('');
   }
 
-  function exportVocab() {
+  window.exportVocab = function() {
     const vocab = load(STORE.vocab);
     if (!vocab.length) return toast('Nothing to export');
-    const header = 'English,Translation,Language,Date Saved\n';
-    const rows = vocab.map(v => [v.source, v.translation, v.lang, new Date(v.date).toLocaleDateString()]
+    const header = 'Word,Translation,Language Pair,Date Saved\n';
+    const rows = vocab.map(v => [v.source, v.translation, `${(v.sourceLang || 'en').toUpperCase()}-${v.lang.toUpperCase()}`, new Date(v.date).toLocaleDateString()]
       .map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
     const csv = '\ufeff' + header + rows;
     const a = document.createElement('a');
@@ -3260,26 +3311,95 @@
     toast('Spreadsheet downloaded');
   }
 
-  function clearVocab() {
-    if (!confirm('Clear all saved words?')) return;
-    save(STORE.vocab, []);
+  window.clearVocab = function() { 
+    showConfirm('Clear all saved words?', () => {
+      save(STORE.vocab, []); 
+      renderVocab(); 
+      toast('Cleared'); 
+    });
+  }
+
+  // A global function to re-render everything if cloud data arrives
+  window.renderAllViews = function() {
+    renderCategories();
+    renderSources();
+    renderInbox();
+    renderTasks();
     renderVocab();
-    toast('Cleared');
+    if(currentTab === 'draw') renderDrawings();
   }
 
   // ============ INIT ============
-  renderCategories();
-  renderSources();
-  renderInbox();
-  renderTasks();
-  renderVocab();
+  window.renderAllViews();
   updateHeader();
 
   setInterval(renderTasks, 60000);
 
   document.getElementById('source-text').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doTranslate(); }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); window.doTranslate(); }
   });
+
+  // ============ DRIVE CLOUD SYNC IMPLEMENTATION ============
+  window.syncToDrive = async function() {
+    if (!accessToken || !driveFileId || isSyncing) return;
+    
+    isSyncing = true;
+    updateSyncStatus(false);
+
+    // Grab all local state to sync
+    const localData = {
+      sources: load(STORE.sources),
+      notes: load(STORE.notes),
+      categories: load(STORE.categories),
+      tasks: load(STORE.tasks),
+      vocab: load(STORE.vocab),
+      mindmap: load(STORE.mindmap, {}),
+      drawings: load(STORE.drawings),
+      lastUpdated: new Date().toISOString()
+    };
+
+    try {
+      await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(localData)
+      });
+      updateSyncStatus(true);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      isSyncing = false;
+    }
+  }
+
+  async function downloadData() {
+    try {
+      const response = await fetch(`https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`, {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      });
+      const cloudData = await response.json();
+      
+      if (cloudData) {
+        // Sync cloud data back to local storage
+        if(cloudData.sources) localStorage.setItem(STORE.sources, JSON.stringify(cloudData.sources));
+        if(cloudData.notes) localStorage.setItem(STORE.notes, JSON.stringify(cloudData.notes));
+        if(cloudData.categories) localStorage.setItem(STORE.categories, JSON.stringify(cloudData.categories));
+        if(cloudData.tasks) localStorage.setItem(STORE.tasks, JSON.stringify(cloudData.tasks));
+        if(cloudData.vocab) localStorage.setItem(STORE.vocab, JSON.stringify(cloudData.vocab));
+        if(cloudData.mindmap) localStorage.setItem(STORE.mindmap, JSON.stringify(cloudData.mindmap));
+        if(cloudData.drawings) localStorage.setItem(STORE.drawings, JSON.stringify(cloudData.drawings));
+        
+        window.renderAllViews();
+        updateSyncStatus(true);
+      }
+    } catch (error) {
+      console.error("Download Error: ", error);
+      toast('Error fetching cloud data');
+    }
+  }
 </script>
 </body>
 </html>
